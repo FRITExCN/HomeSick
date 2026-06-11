@@ -1,4 +1,3 @@
---f
 local env = nil
 pcall(function() env = getfenv and getfenv() or _G end)
 if type(env) ~= "table" then env = {} end
@@ -96,8 +95,21 @@ if not _isrbxactive then
     end
 end
 
-local _setrobloxinput = _fromG("setrobloxinput", "setRobloxInput", "blockInput")
-if not _setrobloxinput then _setrobloxinput = function() end end
+-- Smart setrobloxinput wrapper to prevent boolean inversion on blockInput
+local _setrobloxinput
+local srin = _fromG("setrobloxinput", "setRobloxInput")
+if srin then
+    _setrobloxinput = srin
+else
+    local bi = _fromG("blockInput", "blockinput")
+    if bi then
+        _setrobloxinput = function(state)
+            bi(not state) -- Invert boolean (setrobloxinput(true) -> blockInput(false))
+        end
+    else
+        _setrobloxinput = function() end
+    end
+end
 
 -- ── File system ───────────────────────────────────────────────────────
 local _writefile  = _fromG("writefile",  "writeFile")
@@ -386,9 +398,9 @@ if uis then
 end
 
 local Fonts = (type(Drawing) == "table" and Drawing.Fonts) or {}
-local FontSystem = Fonts.Monospace or 4
-local FontBold = Fonts.Monospace or 4
-local FontUI = Fonts.Monospace or 4
+local FontSystem = Fonts.System or Fonts.UI or 0
+local FontBold = Fonts.SystemBold or FontSystem
+local FontUI = Fonts.UI or FontSystem
 
 local FontWidths = {}
 FontWidths[Fonts.System or 0] = 0.48
@@ -975,7 +987,7 @@ local function rect(x, y, w, h, color, z, radius, transparency)
     d.Size = v2(w, h)
     d.Color = color
     d.Filled = true
-    d.Corner = 0
+    d.Corner = radius or 0
     d.ZIndex = z or 1
     d.Transparency = (transparency or drawVisible) * getThemeAlpha(color)
 end
@@ -992,7 +1004,7 @@ local function strokeRect(x, y, w, h, color, z, radius, transparency)
     d.Size = v2(w, h)
     d.Color = color
     d.Filled = false
-    d.Corner = 0
+    d.Corner = radius or 0
     d.ZIndex = z or 1
     d.Transparency = (transparency or drawVisible) * getThemeAlpha(color)
 end
