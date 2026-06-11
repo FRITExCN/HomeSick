@@ -4937,8 +4937,7 @@ local function initSettings()
     ProjectState.settingsTab = settingsTab
  
     local configSection = createSection(settingsTab, "Configs", "Left")
-    local configDropdown = configSection:Dropdown("Config List", getConfigsList(), getConfigsList())
-    configDropdown:Set("")
+    local configDropdown = configSection:Dropdown("Config List", {}, getConfigsList())
     
     configDropdown.item.deletable = true
     configDropdown.item.onDelete = function(name)
@@ -4951,7 +4950,6 @@ local function initSettings()
     end
     
     local configNameBox = configSection:Textbox("Config Name", "")
-    configNameBox:Set("")
 
     configSection:Button("Load", function()
         local name = configNameBox.item.value
@@ -4962,6 +4960,9 @@ local function initSettings()
             local ok, raw = pcall(readfile, "homesick/" .. name .. ".json")
             if ok and ok == ok and raw then
                 loadConfig(raw)
+                ui:Notify("config", "loaded: " .. name, 3)
+            else
+                ui:Notify("config", "failed to load: " .. name, 3)
             end
         end
     end)
@@ -4975,13 +4976,13 @@ local function initSettings()
             if json and json ~= "" then
                 pcall(writefile, "homesick/" .. name .. ".json", json)
                 configDropdown:UpdateChoices(getConfigsList())
+                ui:Notify("config", "saved: " .. name, 3)
             end
         end
     end)
 
     local themeSection = createSection(settingsTab, "Themes", "Right")
-    local themeDropdown = themeSection:Dropdown("Theme List", getThemesList(), getThemesList())
-    themeDropdown:Set("")
+    local themeDropdown = themeSection:Dropdown("Theme List", {}, getThemesList())
     
     themeDropdown.item.deletable = true
     themeDropdown.item.onDelete = function(name)
@@ -5005,6 +5006,9 @@ local function initSettings()
             local ok, raw = pcall(readfile, "homesick/themes/" .. name .. ".json")
             if ok and ok == ok and raw then
                 loadTheme(raw)
+                ui:Notify("theme", "loaded: " .. name, 3)
+            else
+                ui:Notify("theme", "failed to load: " .. name, 3)
             end
         end
     end)
@@ -5022,6 +5026,7 @@ local function initSettings()
             if json and json ~= "" then
                 pcall(writefile, "homesick/themes/" .. name .. ".json", json)
                 themeDropdown:UpdateChoices(getThemesList())
+                ui:Notify("theme", "saved: " .. name, 3)
             end
         end
     end)
@@ -5507,8 +5512,8 @@ local function renderWindow(click, held, rightClick)
     local isVertTitle = titlePos == "left" or titlePos == "right"
     
     local titleBarX, titleBarY, titleBarW, titleBarH
-    local px, py = x + 10, y + 10
-    local pw, ph = w - 20, h - 20 - 24
+    local px, py = x + 8, y + 8
+    local pw, ph = w - 16, h - 16 - 24
     
     if titlePos == "left" then
         titleBarX, titleBarY, titleBarW, titleBarH = x + 2, y + 2, 36 - 2, h - 28
@@ -5522,8 +5527,8 @@ local function renderWindow(click, held, rightClick)
         ph = ph - 36
     else
         titleBarX, titleBarY, titleBarW, titleBarH = x + 2, y + 2, w - 4, 36 - 2
-        py = py + 36
-        ph = ph - 36
+        py = py + 32
+        ph = ph - 32
     end
 
     for i = 1, #shadowAlpha do
