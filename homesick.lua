@@ -1,4 +1,3 @@
---f
 local env = nil
 pcall(function() env = getfenv and getfenv() or _G end)
 if type(env) ~= "table" then env = {} end
@@ -465,33 +464,37 @@ end
 local function _sgApply(slot, x, y, w, h, color, rad, trans, filled)
     if not slot then return end
     local vw, vh = 1920, 1080
+    -- Drawing API utilise les coordonnées ÉCRAN brutes (IgnoreGuiInset)
+    -- la ScreenGui est aussi en IgnoreGuiInset=true donc pas de correction needed
     pcall(function()
         local vp = game:GetService("Workspace").CurrentCamera.ViewportSize
         vw, vh = vp.X, vp.Y
     end)
     local cr = UDim.new(0, rad or 6)
-    local t  = 1 - (trans or 1)
-    if t < 0 then t = 0 end
-    if t > 1 then t = 1 end
+    -- trans dans homesick = opacité (1 = visible, 0 = invisible)
+    -- BackgroundTransparency = inverse : 0 = opaque, 1 = invisible
+    local bgTrans = 1 - (trans or 1)
+    if bgTrans < 0 then bgTrans = 0 end
+    if bgTrans > 1 then bgTrans = 1 end
     pcall(function()
         if filled then
             local f = slot.fill
-            f.Position = UDim2.new(x/vw, 0, y/vh, 0)
-            f.Size     = UDim2.new(w/vw, 0, h/vh, 0)
+            f.Position = UDim2.fromOffset(x, y)
+            f.Size     = UDim2.fromOffset(w, h)
             f.BackgroundColor3       = color
-            f.BackgroundTransparency = t
+            f.BackgroundTransparency = bgTrans
             slot.corner.CornerRadius = cr
             f.Visible = true
             slot.stroke.Visible = false
         else
             local fs = slot.stroke
-            fs.Position = UDim2.new(x/vw, 0, y/vh, 0)
-            fs.Size     = UDim2.new(w/vw, 0, h/vh, 0)
+            fs.Position = UDim2.fromOffset(x, y)
+            fs.Size     = UDim2.fromOffset(w, h)
             fs.BackgroundTransparency = 1
             slot.scorner.CornerRadius = cr
-            slot.ustroke.Color     = color
-            slot.ustroke.Thickness = 1
-            slot.ustroke.Transparency = t
+            slot.ustroke.Color        = color
+            slot.ustroke.Thickness    = 1
+            slot.ustroke.Transparency = bgTrans
             fs.Visible = true
             slot.fill.Visible = false
         end
@@ -2107,13 +2110,6 @@ local function finalDestroy()
     if stepConnection then
         stepConnection:Disconnect()
         stepConnection = nil
-    end
-
-    if ProjectState.zoomLocked and LocalPlayer then
-        pcall(function()
-            LocalPlayer.CameraMinZoomDistance = ProjectState.origMinZoom or 0.5
-            LocalPlayer.CameraMaxZoomDistance = ProjectState.origMaxZoom or 400
-        end)
     end
 
     if ProjectState.cpPaletteSquares then
@@ -6248,39 +6244,7 @@ local function step()
     end
 
     local prevFocus = ProjectState.focus
-    local zoomLocked = ProjectState.zoomLocked
-    if ProjectState.open then
-        if not zoomLocked and LocalPlayer then
-            local ok1, minZ = pcall(function() return LocalPlayer.CameraMinZoomDistance end)
-            local ok2, maxZ = pcall(function() return LocalPlayer.CameraMaxZoomDistance end)
-            if ok1 and ok2 then
-                ProjectState.origMinZoom = minZ
-                ProjectState.origMaxZoom = maxZ
-                ProjectState.zoomLocked = true
-            end
-        end
-        if LocalPlayer and ProjectState.zoomLocked then
-            local currentZoom = 10
-            pcall(function()
-                local head = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Head")
-                if head then
-                    currentZoom = (Workspace.CurrentCamera.CFrame.p - head.Position).Magnitude
-                end
-            end)
-            pcall(function()
-                LocalPlayer.CameraMinZoomDistance = currentZoom
-                LocalPlayer.CameraMaxZoomDistance = currentZoom
-            end)
-        end
-    else
-        if zoomLocked and LocalPlayer then
-            pcall(function()
-                LocalPlayer.CameraMinZoomDistance = ProjectState.origMinZoom or 0.5
-                LocalPlayer.CameraMaxZoomDistance = ProjectState.origMaxZoom or 400
-            end)
-            ProjectState.zoomLocked = nil
-        end
-    end
+    -- Zoom lock désactivé (causait dézoom involontaire)
     resetPool()
     ProjectState.tooltipText = nil
     if (not ProjectState.open or not ProjectState.colorpicker) and ProjectState.cpPaletteSquares then
