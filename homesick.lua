@@ -2,12 +2,6 @@ local env = nil
 pcall(function() env = getfenv and getfenv() or _G end)
 if type(env) ~= "table" then env = {} end
 
--- ╔══════════════════════════════════════════════════════════════════╗
--- ║         MULTI-EXPLOIT COMPATIBILITY LAYER                        ║
--- ║  Supports: Velocity · Solara · Volt · Xeno · Delta · Fluxus     ║
--- ║            Synapse X · Electron · Krnl · Hydrogen · Arceus X    ║
--- ╚══════════════════════════════════════════════════════════════════╝
-
 local function _resolve(...)
     for i = 1, select("#", ...) do
         local v = select(i, ...)
@@ -81,35 +75,9 @@ local _keyrelease = _fromG("keyrelease", "keyUp",     "releaseKey")
 if not _keypress   then _keypress   = function() end end
 if not _keyrelease then _keyrelease = function() end end
 
--- ── Window focus ─────────────────────────────────────────────────────
-local _isrbxactive = _fromG("isrbxactive", "isRobloxFocused", "isGameFocused")
-if not _isrbxactive then
-    local ok, uis = pcall(function() return game:GetService("UserInputService") end)
-    if ok and uis then
-        _isrbxactive = function()
-            local s, r = pcall(function() return uis.WindowFocused end)
-            return (s and r) ~= false
-        end
-    else
-        _isrbxactive = function() return true end
-    end
-end
-
--- Smart setrobloxinput wrapper to prevent boolean inversion on blockInput
-local _setrobloxinput
-local srin = _fromG("setrobloxinput", "setRobloxInput")
-if srin then
-    _setrobloxinput = srin
-else
-    local bi = _fromG("blockInput", "blockinput")
-    if bi then
-        _setrobloxinput = function(state)
-            bi(not state) -- Invert boolean (setrobloxinput(true) -> blockInput(false))
-        end
-    else
-        _setrobloxinput = function() end
-    end
-end
+-- ── Window focus (No-op inputs blocking for safety) ──────────────────
+local _isrbxactive = function() return true end
+local _setrobloxinput = function() end
 
 -- ── File system ───────────────────────────────────────────────────────
 local _writefile  = _fromG("writefile",  "writeFile")
@@ -987,7 +955,11 @@ local function rect(x, y, w, h, color, z, radius, transparency)
     d.Size = v2(w, h)
     d.Color = color
     d.Filled = true
-    d.Corner = radius or 0
+        local rad = radius or 6
+    pcall(function() d.Corner = rad end)
+    pcall(function() d.Round = rad end)
+    pcall(function() d.Radius = rad end)
+    pcall(function() d.CornerRadius = rad end)
     d.ZIndex = z or 1
     d.Transparency = (transparency or drawVisible) * getThemeAlpha(color)
 end
@@ -1004,7 +976,11 @@ local function strokeRect(x, y, w, h, color, z, radius, transparency)
     d.Size = v2(w, h)
     d.Color = color
     d.Filled = false
-    d.Corner = radius or 0
+        local rad = radius or 6
+    pcall(function() d.Corner = rad end)
+    pcall(function() d.Round = rad end)
+    pcall(function() d.Radius = rad end)
+    pcall(function() d.CornerRadius = rad end)
     d.ZIndex = z or 1
     d.Transparency = (transparency or drawVisible) * getThemeAlpha(color)
 end
@@ -1443,8 +1419,8 @@ local function renderNotifications()
                 fadeAlpha = (n.duration - n.elapsed) / 0.35
             end
             fadeAlpha = clamp(fadeAlpha, 0, 1)
-            rect(nx, ny, width, height, Theme.surface2, z, 6, 0.85 * fadeAlpha)
-            strokeRect(nx, ny, width, height, Theme.border, z + 1, 6, 0.85 * fadeAlpha)
+            rect(nx, ny, width, height, Theme.surface2, z, 8, 0.85 * fadeAlpha)
+            strokeRect(nx, ny, width, height, Theme.border, z + 1, 8, 0.85 * fadeAlpha)
             txt(displaySource, nx + 14, ny + 10, n.title == "warning" and Theme.red or Theme.accent, 11, FontUI, z + 2, false, false, width - 28, 0.95 * fadeAlpha)
             txt(n.description, nx + 14, ny + 26, Theme.text, 11, FontSystem, z + 2, false, false, width - 28, 0.95 * fadeAlpha)
             local barY = ny + height - 4
@@ -2865,8 +2841,8 @@ local function renderHotkeyOverlay(click, held)
         ProjectState.hotkeyDrag = nil
     end
     
-    rect(hx, hy, hw, hh, Theme.surface, 150, 6, 0.85)
-    strokeRect(hx, hy, hw, hh, Theme.border, 151, 6)
+    rect(hx, hy, hw, hh, Theme.surface, 150, 8, 0.85)
+    strokeRect(hx, hy, hw, hh, Theme.border, 151, 8)
     
     rect(hx + 2, hy + 2, hw - 4, 18, Theme.surface2, 152, 4)
     txt("keybinds", hx + 10, textTop(hy + 2, 18, 11), Theme.accent, 11, FontBold, 153)
@@ -2933,8 +2909,8 @@ local function renderTooltip()
     local x = clamp(ProjectState.tooltipX + 12, 8, max(8, select(1, viewportSize()) - width - 8))
     local y = clamp(ProjectState.tooltipY + 18, 8, max(8, select(2, viewportSize()) - h - 4))
 
-    rect(x, y, width, h, Theme.black, 140, 6, 0.92)
-    strokeRect(x, y, width, h, Theme.border, 141, 6)
+    rect(x, y, width, h, Theme.black, 140, 8, 0.92)
+    strokeRect(x, y, width, h, Theme.border, 141, 8)
     for i = 1, #lines do
         txt(lines[i], x + 8, y + 8 + (i - 1) * 16, Theme.text, 12, FontUI, 142)
     end
@@ -2968,8 +2944,8 @@ local function renderDropdown(click, rightClick)
     end
     dd.scrollOffset = clamp(dd.scrollOffset, 0, max(0, #dd.choices - maxRows))
 
-    rect(dd.x - 1, dd.y - 1, dd.w + 2, dd.h + 2, Theme.border, 110, 4)
-    rect(dd.x, dd.y, dd.w, dd.h, Theme.surface, 111, 4)
+    rect(dd.x - 1, dd.y - 1, dd.w + 2, dd.h + 2, Theme.border, 110, 8)
+    rect(dd.x, dd.y, dd.w, dd.h, Theme.surface, 111, 8)
 
     if headerH > 0 then
         rect(dd.x + 2, dd.y + 2, dd.w - 4, 20, Theme.surface2, 112, 3)
@@ -3202,14 +3178,14 @@ local function renderColorpicker(click, held)
         ProjectState.cpDrag = nil
     end
 
-    rect(x, y, w, h, Theme.surface2, 110, 8)
-    strokeRect(x, y, w, h, Theme.border, 111, 8)
+    rect(x, y, w, h, Theme.surface2, 110, 10)
+    strokeRect(x, y, w, h, Theme.border, 111, 10)
     txt(cp.picker.label, x + 10, y + 8, Theme.text, 13, FontBold, 112, false, false, w - 20)
 
     local palX, palY = x + 10, y + 28
     local palW, palH = 160, 160
 
-    rect(palX, palY, palW, palH, Theme.surface, 112, 8)
+    rect(palX, palY, palW, palH, Theme.surface, 112, 10)
     local cpSquares = ProjectState.cpPaletteSquares
     if not cpSquares then
         cpSquares = {}
@@ -3373,8 +3349,8 @@ local function renderWatermark(click, held)
         ProjectState.watermarkDrag = nil
     end
     
-    rect(x, y, w, h, Theme.surface, 150, 6, 0.85)
-    strokeRect(x, y, w, h, Theme.accent, 151, 6)
+    rect(x, y, w, h, Theme.surface, 150, 8, 0.85)
+    strokeRect(x, y, w, h, Theme.accent, 151, 8)
     txt(text, x + 10, textTop(y, h, 12), Theme.text, 12, FontUI, 152, false, false)
 end
 
@@ -3906,13 +3882,13 @@ local function renderSectionCard(section, colX, sy, colW, secH, clipTop, clipBot
 
     if renderH > 0 then
         if isPlaceholder then
-            rect(colX, renderY, colW, renderH, Theme.surface, z, 8, 0.25 * cardTrans)
-            strokeRect(colX, renderY, colW, renderH, Theme.border, z + 1, 8, 0.4 * cardTrans)
+            rect(colX, renderY, colW, renderH, Theme.surface, z, 10, 0.25 * cardTrans)
+            strokeRect(colX, renderY, colW, renderH, Theme.border, z + 1, 10, 0.4 * cardTrans)
             return click, held, rightClick
         end
 
-        rect(colX, renderY, colW, renderH, Theme.surface2, z, 8, cardTrans)
-        strokeRect(colX, renderY, colW, renderH, Theme.border, z + 1, 8, cardTrans)
+        rect(colX, renderY, colW, renderH, Theme.surface2, z, 10, cardTrans)
+        strokeRect(colX, renderY, colW, renderH, Theme.border, z + 1, 10, cardTrans)
 
         local cx = clamp(ProjectState.mouseX, colX, colX + colW)
         local cy = clamp(ProjectState.mouseY, renderY, renderY + renderH)
@@ -5405,20 +5381,20 @@ local function renderWindow(click, held, rightClick)
 
     for i = 1, #shadowAlpha do
         local offset = i * 2
-        rect(x - offset, y - offset + 6, w + offset * 2, h + offset * 2, Theme.black, 0, 12, shadowAlpha[i])
+        rect(x - offset, y - offset + 6, w + offset * 2, h + offset * 2, Theme.black, 0, 14, shadowAlpha[i])
     end
 
     local glowIntensity = 0.35 + 0.2 * math.cos(clock() * 2.5)
     for i = 1, 3 do
         local offset = i * 3
-        rect(x - offset, y - offset, w + offset * 2, h + offset * 2, Theme.accent, 0, 12, glowIntensity * (0.12 / i))
+        rect(x - offset, y - offset, w + offset * 2, h + offset * 2, Theme.accent, 0, 14, glowIntensity * (0.12 / i))
     end
 
-    rect(x, y, w, h, Theme.surface, 5, (titlePos == "bottom") and 0 or 12)
+    rect(x, y, w, h, Theme.surface, 5, (titlePos == "bottom") and 0 or 14)
     if titlePos == "left" or titlePos == "right" then
         rect(x, y + h - 12, w, 12, Theme.surface, 5, 0)
     end
-    strokeRect(x, y, w, h, Theme.border, 6, (titlePos == "bottom") and 0 or 12)
+    strokeRect(x, y, w, h, Theme.border, 6, (titlePos == "bottom") and 0 or 14)
     if titlePos == "left" or titlePos == "right" then
         rect(x + 1, y + h - 12, w - 2, 13, Theme.surface, 6, 0)
         line(x, y + h - 12, x, y + h, Theme.border, 6)
@@ -5443,19 +5419,19 @@ local function renderWindow(click, held, rightClick)
     end
 
     if titlePos == "top" then
-        rect(titleBarX, titleBarY, titleBarW, titleBarH, Theme.surface2, 7, 10)
+        rect(titleBarX, titleBarY, titleBarW, titleBarH, Theme.surface2, 7, 12)
         rect(titleBarX, titleBarY + titleBarH / 2, titleBarW, titleBarH / 2, Theme.surface2, 7, 0)
         line(titleBarX, titleBarY + titleBarH, titleBarX + titleBarW, titleBarY + titleBarH, Theme.border, 8)
     elseif titlePos == "bottom" then
-        rect(titleBarX, titleBarY, titleBarW, titleBarH, Theme.surface2, 7, 10)
+        rect(titleBarX, titleBarY, titleBarW, titleBarH, Theme.surface2, 7, 12)
         rect(titleBarX, titleBarY, titleBarW, titleBarH / 2, Theme.surface2, 7, 0)
         line(titleBarX, titleBarY, titleBarX + titleBarW, titleBarY, Theme.border, 8)
     elseif titlePos == "left" then
-        rect(titleBarX, titleBarY, titleBarW, titleBarH, Theme.surface2, 7, 10)
+        rect(titleBarX, titleBarY, titleBarW, titleBarH, Theme.surface2, 7, 12)
         rect(titleBarX + titleBarW / 2, titleBarY, titleBarW / 2, titleBarH, Theme.surface2, 7, 0)
         line(titleBarX + titleBarW, titleBarY, titleBarX + titleBarW, titleBarY + titleBarH, Theme.border, 8)
     else
-        rect(titleBarX, titleBarY, titleBarW, titleBarH, Theme.surface2, 7, 10)
+        rect(titleBarX, titleBarY, titleBarW, titleBarH, Theme.surface2, 7, 12)
         rect(titleBarX, titleBarY, titleBarW / 2, titleBarH, Theme.surface2, 7, 0)
         line(titleBarX, titleBarY, titleBarX, titleBarY + titleBarH, Theme.border, 8)
     end
@@ -5808,8 +5784,8 @@ local function renderWindow(click, held, rightClick)
             end
         end
         
-        rect(tabsX, tabsY, tabsWidth, tabsHeight, Theme.surface, 5, 8)
-        strokeRect(tabsX, tabsY, tabsWidth, tabsHeight, Theme.border, 6, 8)
+        rect(tabsX, tabsY, tabsWidth, tabsHeight, Theme.surface, 5, 10)
+        strokeRect(tabsX, tabsY, tabsWidth, tabsHeight, Theme.border, 6, 10)
         
         if ProjectState.layoutEditing then
             local isHoveredTabs = over(tabsX, tabsY, tabsWidth, tabsHeight)
@@ -5878,8 +5854,8 @@ local function renderWindow(click, held, rightClick)
         local mz = 85
         
         rect(x, y, w, h, c3(0, 0, 0), mz - 2, 8, 0.6)
-        rect(mx, my, modalW, modalH, Theme.surface2, mz, 8, 1)
-        strokeRect(mx, my, modalW, modalH, Theme.border, mz + 1, 8, 1)
+        rect(mx, my, modalW, modalH, Theme.surface2, mz, 10, 1)
+        strokeRect(mx, my, modalW, modalH, Theme.border, mz + 1, 10, 1)
         
         local modalTitle = modal.type == "config" and "import config" or "import theme"
         txt(modalTitle, mx + 16, my + 14, Theme.accent, 13, FontBold, mz + 2)
@@ -5967,8 +5943,8 @@ local function renderWindow(click, held, rightClick)
         local mz = 85
         
         rect(x, y, w, h, c3(0, 0, 0), mz - 2, 8, 0.6)
-        rect(mx, my, modalW, modalH, Theme.surface2, mz, 8, 1)
-        strokeRect(mx, my, modalW, modalH, Theme.border, mz + 1, 8, 1)
+        rect(mx, my, modalW, modalH, Theme.surface2, mz, 10, 1)
+        strokeRect(mx, my, modalW, modalH, Theme.border, mz + 1, 10, 1)
         
         txt("homesick changelog - " .. "v1.3.6", mx + 16, my + 14, Theme.accent, 13, FontBold, mz + 2)
         
@@ -6020,8 +5996,8 @@ local function renderSpotlightSearch(click)
     rect(0, 0, vw, vh, Theme.black, 299, 0, 0.25 * fade)
 
     rect(sx - 4, sy - 4, 408, 48, Theme.black, 298, 10, 0.2 * fade)
-    rect(sx, sy, 400, 40, Theme.surface, 300, 8, 0.85 * fade)
-    strokeRect(sx, sy, 400, 40, Theme.accent, 301, 8, fade * 0.4)
+    rect(sx, sy, 400, 40, Theme.surface, 300, 10, 0.85 * fade)
+    strokeRect(sx, sy, 400, 40, Theme.accent, 301, 10, fade * 0.4)
 
     circle(sx + 20, centerY(sy, 40) - 2, 4, Theme.accent, 302, false, 1.5, 12, fade)
     line(sx + 23, centerY(sy, 40) + 1, sx + 27, centerY(sy, 40) + 5, Theme.accent, 302, 1.5, fade)
@@ -6052,8 +6028,8 @@ local function renderSpotlightSearch(click)
         local matchCount = math.min(#matches, 5)
         local resultsH = matchCount * 30 + 10
         rect(sx - 4, sy + 42, 408, resultsH + 8, Theme.black, 298, 10, 0.2 * fade)
-        rect(sx, sy + 46, 400, resultsH, Theme.surface, 300, 8, 0.85 * fade)
-        strokeRect(sx, sy + 46, 400, resultsH, Theme.border, 301, 8, fade * 0.8)
+        rect(sx, sy + 46, 400, resultsH, Theme.surface, 300, 10, 0.85 * fade)
+        strokeRect(sx, sy + 46, 400, resultsH, Theme.border, 301, 10, fade * 0.8)
         ProjectState.spotlightSearch.selected = clamp(ProjectState.spotlightSearch.selected or 1, 1, matchCount)
         for i = 1, matchCount do
             local match = matches[i]
