@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>homesick — Documentation</title>
+<style>
+  :root {
+    --bg:       #1a1710;
+    --surface:  #221e0e;
+    --surface2: #2d2814;
+    --surface3: #3a321a;
+    --border:   #4e4424;
+    --accent:   #FFD63C;
+    --accent2:  #c9a800;
+    --text:     #e8d898;
+    --sub:      #a89a70;
+    --red:      #ff4b4b;
+    --green:    #4cdd8a;
+    --mono:     'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --sans:     'Inter', 'Segoe UI', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  nav {
+    width: 240px;
+    min-width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 28px 0 40px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .nav-logo {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .nav-logo span {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .04em;
+  }
+
+  .nav-logo small {
+    display: block;
+    font-size: 11px;
+    color: var(--sub);
+    margin-top: 2px;
+    letter-spacing: .06em;
+  }
+
+  .nav-group {
+    padding: 0 12px;
+    margin-bottom: 4px;
+  }
+
+  .nav-group-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: var(--sub);
+    text-transform: uppercase;
+    padding: 10px 8px 4px;
+  }
+
+  nav a {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: var(--sub);
+    text-decoration: none;
+    font-size: 13px;
+    transition: background .12s, color .12s;
+  }
+
+  nav a:hover { background: var(--surface2); color: var(--text); }
+  nav a.active { background: rgba(255,214,60,.12); color: var(--accent); font-weight: 600; }
+
+  /* ── Main ── */
+  main {
+    flex: 1;
+    max-width: 860px;
+    padding: 48px 52px 80px;
+  }
+
+  /* ── Section headings ── */
+  .section {
+    margin-bottom: 64px;
+    scroll-margin-top: 24px;
+  }
+
+  h1 { font-size: 32px; font-weight: 700; color: var(--accent); line-height: 1.2; margin-bottom: 8px; }
+  h2 { font-size: 22px; font-weight: 700; color: var(--accent); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 15px; font-weight: 700; color: var(--text); margin: 28px 0 10px; }
+
+  .hero-sub { font-size: 15px; color: var(--sub); margin-bottom: 32px; line-height: 1.6; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+  .badge-ret  { background: rgba(76,221,138,.15); color: var(--green); border: 1px solid rgba(76,221,138,.3); }
+  .badge-req  { background: rgba(255,75,75,.12); color: var(--red); border: 1px solid rgba(255,75,75,.3); }
+  .badge-opt  { background: rgba(255,214,60,.10); color: var(--accent); border: 1px solid rgba(255,214,60,.3); }
+  .badge-chain { background: rgba(100,150,255,.12); color: #7aa8ff; border: 1px solid rgba(100,150,255,.3); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    position: relative;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+
+  .code-block pre {
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--surface3);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--sub);
+    font-family: var(--mono);
+  }
+
+  .copy-btn {
+    background: rgba(255,214,60,.12);
+    border: 1px solid rgba(255,214,60,.3);
+    color: var(--accent);
+    border-radius: 5px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: background .12s;
+  }
+
+  .copy-btn:hover { background: rgba(255,214,60,.22); }
+  .copy-btn.copied { color: var(--green); border-color: rgba(76,221,138,.4); background: rgba(76,221,138,.1); }
+
+  /* Syntax colors */
+  .k  { color: #e06c75; }   /* keyword */
+  .s  { color: #98c379; }   /* string */
+  .c  { color: #5c6370; font-style: italic; }  /* comment */
+  .f  { color: #61afef; }   /* function call */
+  .v  { color: #e5c07b; }   /* variable / number */
+  .p  { color: #abb2bf; }   /* punctuation */
+
+  /* ── API cards ── */
+  .api-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .api-card-header {
+    padding: 14px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .api-card-body { padding: 16px 20px; }
+
+  .api-desc { color: var(--sub); font-size: 13.5px; margin-bottom: 12px; }
+
+  /* ── Params table ── */
+  .params { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+  .params th { text-align: left; padding: 6px 12px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--sub); border-bottom: 1px solid var(--border); }
+  .params td { padding: 7px 12px; border-bottom: 1px solid rgba(78,68,36,.4); vertical-align: top; }
+  .params tr:last-child td { border-bottom: none; }
+  .params .pname { font-family: var(--mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
+  .params .ptype { font-family: var(--mono); font-size: 11px; color: #7aa8ff; white-space: nowrap; }
+  .params .pdesc { color: var(--sub); font-size: 13px; }
+
+  /* ── Returns table ── */
+  .returns { background: rgba(76,221,138,.05); border: 1px solid rgba(76,221,138,.2); border-radius: 7px; padding: 10px 14px; font-size: 13px; color: var(--sub); margin-top: 8px; }
+  .returns strong { color: var(--green); }
+
+  /* ── Inline code ── */
+  code { font-family: var(--mono); font-size: 12px; background: var(--surface3); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--accent); }
+
+  /* ── Alerts ── */
+  .alert { border-radius: 8px; padding: 12px 16px; margin: 16px 0; font-size: 13.5px; border-left: 3px solid; }
+  .alert-tip  { background: rgba(76,221,138,.07); border-color: var(--green); color: #a0f0c0; }
+  .alert-warn { background: rgba(255,214,60,.07); border-color: var(--accent); color: #e8d070; }
+  .alert-info { background: rgba(100,150,255,.07); border-color: #7aa8ff; color: #aac4ff; }
+
+  /* ── Methods list ── */
+  .method-chain {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--sub);
+    margin: 12px 0;
+    line-height: 2;
+  }
+  .method-chain span { color: var(--text); }
+  .method-chain em   { color: var(--accent); font-style: normal; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--sub); }
+
+  /* ── Separator ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    nav { display: none; }
+    main { padding: 28px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav id="sidebar">
+  <div class="nav-logo">
+    <span>homesick</span>
+    <small>Executor GUI Library</small>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Démarrage</div>
+    <a href="#intro">Introduction</a>
+    <a href="#compat">Compatibilité Exploits</a>
+    <a href="#quickstart">Quickstart</a>
+    <a href="#window">Fenêtre</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Structure</div>
+    <a href="#tab">Tab</a>
+    <a href="#section">Section</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Composants</div>
+    <a href="#toggle">Toggle</a>
+    <a href="#checkbox">Checkbox</a>
+    <a href="#button">Button</a>
+    <a href="#slider">Slider</a>
+    <a href="#dropdown">Dropdown</a>
+    <a href="#textbox">Textbox</a>
+    <a href="#colorpicker">Colorpicker</a>
+    <a href="#label">Label</a>
+    <a href="#divider">Divider</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Extensions</div>
+    <a href="#keybind">Keybind</a>
+    <a href="#colorpicker-ext">Colorpicker ext.</a>
+    <a href="#depends">DependsOn</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Global</div>
+    <a href="#notify">Notifications</a>
+    <a href="#watermark">Watermark</a>
+    <a href="#activity">Activity</a>
+    <a href="#config">Config / Thème</a>
+    <a href="#destroy">Destroy</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-label">Exemples</div>
+    <a href="#full-example">Script complet</a>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<main>
+
+<!-- INTRO -->
+<div class="section" id="intro">
+  <h1>homesick</h1>
+  <p class="hero-sub">
+    Bibliothèque GUI pour executors Roblox — <strong style="color:var(--accent)">Velocity · Solara · Volt · Xeno · Delta · Fluxus · Synapse X · Electron · Krnl · Hydrogen · Arceus X</strong> et tout executor compatible UNC.<br>
+    Rendu via <code>Drawing API</code> — aucun <code>Instance.new</code>, aucun <code>ScreenGui</code>.<br>
+    API fluide par chaînage, thème sombre avec accent jaune citron.<br>
+    <span style="color:var(--sub);font-size:13px">Un layer de compatibilité automatique détecte et normalise toutes les APIs exploit au démarrage.</span>
+  </p>
+
+  <div class="alert alert-info">
+    <strong>Chargement :</strong> collez l'URL raw du script dans <code>loadstring(game:HttpGet(...))()</code>.
+    Le retour est l'objet <code>homesick</code>.
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span>lua</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+    <pre><span class="k">local</span> <span class="v">hs</span> <span class="p">=</span> <span class="f">loadstring</span><span class="p">(</span><span class="v">game</span><span class="p">:</span><span class="f">HttpGet</span><span class="p">(</span>
+    <span class="s">"https://raw.githubusercontent.com/FRITExCN/HomeSick/refs/heads/main/homesick.lua"</span>
+<span class="p">))()</span>
+
+<span class="c">-- hs est maintenant disponible, ou via _G.homesick</span>
+<span class="k">local</span> <span class="v">hs</span> <span class="p">=</span> <span class="v">_G</span><span class="p">.</span><span class="v">homesick</span></pre>
+  </div>
+</div>
+
+<!-- COMPAT -->
+<div class="section" id="compat">
+  <h2>Compatibilité Exploits</h2>
+  <p style="color:var(--sub);font-size:13.5px;margin-bottom:16px;"
+  >La lib injecte automatiquement un <strong style="color:var(--text)">compat layer</strong> au démarrage. Aucune configuration nécessaire — il détecte l'executor actif et mappe toutes les APIs critiques.</p>
+
+  <!-- Table exploits -->
+  <table class="params" style="margin-bottom:24px">
+    <tr><th>Executor</th><th>Mouse / Clavier</th><th>Fichiers</th><th>Drawing</th><th>isrbxactive</th></tr>
+    <tr><td class="pname">Velocity</td><td class="ptype">✓ natif UNC</td><td class="ptype">✓ natif</td><td class="ptype">✓</td><td class="ptype">✓</td></tr>
+    <tr><td class="pname">Solara</td><td class="ptype">✓ natif UNC</td><td class="ptype">✓ natif</td><td class="ptype">✓</td><td class="ptype">✓</td></tr>
+    <tr><td class="pname">Volt</td><td class="ptype">✓ natif UNC</td><td class="ptype">✓ natif</td><td class="ptype">✓</td><td class="ptype">✓</td></tr>
+    <tr><td class="pname">Xeno</td><td class="ptype">✓ UNC / fallback UIS</td><td class="ptype">✓ natif</td><td class="ptype">✓</td><td class="ptype">✓ fallback UIS</td></tr>
+    <tr><td class="pname">Delta</td><td class="ptype">✓ natif UNC</td><td class="ptype">✓ natif</td><td class="ptype">✓</td><td class="ptype">✓</td></tr>
+    <tr><td class="pname">Fluxus</td><td class="ptype">✓ natif UNC</td><td class="ptype">✓ natif</td><td class="ptype">✓</td><td class="ptype">✓</td></tr>
+    <tr><td class="pname">Synapse X</td><td class="ptype">✓ alias détecté</td><td class="ptype">✓ natif</td><td class="ptype">✓</td><td class="ptype">✓</td></tr>
+    <tr><td class="pname">Electron</td><td class="ptype">✓ fallback UIS</td><td class="ptype">✓ natif</td><td class="ptype">✓</td><td class="ptype">✓ UIS.WindowFocused</td></tr>
+    <tr><td class="pname">Krnl</td><td class="ptype">✓ natif UNC</td><td class="ptype">✓ natif</td><td class="ptype">✓</td><td class="ptype">✓</td></tr>
+    <tr><td class="pname">Hydrogen</td><td class="ptype">✓ fallback UIS</td><td class="ptype">✓ natif</td><td class="ptype">✓ Fonts stubbé</td><td class="ptype">✓</td></tr>
+    <tr><td class="pname">Arceus X</td><td class="ptype">✓ fallback UIS</td><td class="ptype">✓ natif</td><td class="ptype">✓ Fonts stubbé</td><td class="ptype">✓</td></tr>
+  </table>
+
+  <h3>APIs normalisées automatiquement</h3>
+  <div class="method-chain">
+    <em>ismouse1pressed</em><span>()  </span><span class="c">-- clic gauche souris</span><br>
+    <em>ismouse2pressed</em><span>()  </span><span class="c">-- clic droit souris</span><br>
+    <em>iskeypressed</em><span>(vkId)  </span><span class="c">-- touche clavier par VK code</span><br>
+    <em>isrbxactive</em><span>()  </span><span class="c">-- fenêtre Roblox au premier plan</span><br>
+    <em>setrobloxinput</em><span>(bool)  </span><span class="c">-- bloquer/débloquer l'input Roblox</span><br>
+    <em>keypress</em><span>(vk) / </span><em>keyrelease</em><span>(vk)  </span><span class="c">-- simulation clavier (clipboard)</span><br>
+    <em>writefile</em><span> / </span><em>readfile</em><span> / </span><em>makefolder</em><span> / </span><em>isfile</em><span> / </span><em>isfolder</em><span>  </span><span class="c">-- I/O fichiers config/thème</span><br>
+    <em>Drawing.new</em><span>(kind) + </span><em>Drawing.Fonts</em><span>  </span><span class="c">-- rendu Drawing API</span>
+  </div>
+
+  <div class="alert alert-tip">
+    <strong>Fallback garanti :</strong> si une API est absente sur l'executor, le compat layer fournit un équivalent via <code>UserInputService</code> ou une fonction no-op silencieuse. La lib ne plantera jamais sur une API manquante.
+  </div>
+
+  <div class="alert alert-warn">
+    <strong>Clipboard paste</strong> (<code>keypress</code>/<code>keyrelease</code>) nécessite que l'executor expose ces fonctions. Sur les exploits qui ne les ont pas (ex: Hydrogen), le bouton coller dans les textboxes est no-op mais le reste du GUI fonctionne parfaitement.
+  </div>
+
+  <h3>Ordre de résolution</h3>
+  <p style="color:var(--sub);font-size:13px;margin-bottom:8px">Pour chaque API, la lib tente dans cet ordre :</p>
+  <div class="code-block">
+    <div class="code-header"><span>résolution interne</span></div>
+    <pre><span class="c">-- 1. Nom UNC standard dans _G  (ismouse1pressed, iskeypressed, ...)</span>
+<span class="c">-- 2. Alias alternatif dans _G   (isMouseButton1Down, isKeyDown, ...)</span>
+<span class="c">-- 3. Nom dans env (getfenv)      si disponible</span>
+<span class="c">-- 4. Fallback UserInputService  (toujours disponible côté Roblox)</span>
+<span class="c">-- 5. Stub no-op silencieux      jamais de crash</span></pre>
+  </div>
+</div>
+
+<!-- QUICKSTART -->
+<div class="section" id="quickstart">
+  <h2>Quickstart — script minimal</h2>
+  <p style="color:var(--sub);font-size:13.5px;margin-bottom:14px;">Un exemple complet du minimum nécessaire pour afficher une fenêtre avec un toggle.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span>lua — minimum viable</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+    <pre><span class="k">local</span> <span class="v">hs</span> <span class="p">=</span> <span class="f">loadstring</span><span class="p">(</span><span class="v">game</span><span class="p">:</span><span class="f">HttpGet</span><span class="p">(</span>
+    <span class="s">"https://raw.githubusercontent.com/FRITExCN/HomeSick/refs/heads/main/homesick.lua"</span>
+<span class="p">))()</span>
+
+<span class="k">local</span> <span class="v">win</span> <span class="p">=</span> <span class="v">hs</span><span class="p">.</span><span class="f">createWindow</span><span class="p">(</span><span class="s">"Mon Script"</span><span class="p">,</span> <span class="v">480</span><span class="p">,</span> <span class="v">420</span><span class="p">)</span>
+<span class="v">win</span><span class="p">:</span><span class="f">setBadge</span><span class="p">(</span><span class="s">"Mon Script  |  by moi"</span><span class="p">)</span>
+
+<span class="k">local</span> <span class="v">tab</span>  <span class="p">=</span> <span class="v">win</span><span class="p">:</span><span class="f">addTab</span><span class="p">(</span><span class="s">"Main"</span><span class="p">)</span>
+<span class="k">local</span> <span class="v">left</span> <span class="p">=</span> <span class="v">tab</span><span class="p">:</span><span class="f">addSection</span><span class="p">(</span><span class="s">"Options"</span><span class="p">,</span> <span class="s">"Left"</span><span class="p">)</span>
+
+<span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"espEnabled"</span><span class="p">,</span> <span class="s">"ESP"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">val</span><span class="p">)</span>
+    <span class="v">espEnabled</span> <span class="p">=</span> <span class="v">val</span>
+<span class="k">end</span><span class="p">)</span>
+
+<span class="v">win</span><span class="p">.</span><span class="v">visible</span> <span class="p">=</span> <span class="k">true</span></pre>
+  </div>
+</div>
+
+<!-- WINDOW -->
+<div class="section" id="window">
+  <h2>Fenêtre</h2>
+
+  <!-- createWindow -->
+  <div class="api-card">
+    <div class="api-card-header">
+      hs.createWindow<span class="p">(</span><span style="color:#e5c07b">title</span>, <span style="color:#e5c07b">width</span>, <span style="color:#e5c07b">height</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne Window</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Crée et centre la fenêtre principale. À appeler une seule fois.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">title</td><td class="ptype">string</td><td class="pdesc">Titre affiché dans la titlebar</td></tr>
+        <tr><td class="pname">width</td><td class="ptype">number</td><td class="pdesc">Largeur en pixels (défaut : 430)</td></tr>
+        <tr><td class="pname">height</td><td class="ptype">number</td><td class="pdesc">Hauteur en pixels (défaut : 500)</td></tr>
+      </table>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">win</span> <span class="p">=</span> <span class="v">hs</span><span class="p">.</span><span class="f">createWindow</span><span class="p">(</span><span class="s">"Sell Lemons"</span><span class="p">,</span> <span class="v">480</span><span class="p">,</span> <span class="v">420</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- setBadge -->
+  <div class="api-card">
+    <div class="api-card-header">
+      win:setBadge<span class="p">(</span><span style="color:#e5c07b">text</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne win</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Texte affiché dans le footer en bas de fenêtre (ex : nom du script et auteur).</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">win</span><span class="p">:</span><span class="f">setBadge</span><span class="p">(</span><span class="s">"Sell Lemons  |  by neaxus"</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- visible -->
+  <div class="api-card">
+    <div class="api-card-header">
+      win.visible <span style="color:var(--sub);font-size:12px">— propriété</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Affiche ou masque la fenêtre. Lecture/écriture.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">win</span><span class="p">.</span><span class="v">visible</span> <span class="p">=</span> <span class="k">true</span>   <span class="c">-- ouvrir</span>
+<span class="v">win</span><span class="p">.</span><span class="v">visible</span> <span class="p">=</span> <span class="k">false</span>  <span class="c">-- fermer</span>
+<span class="f">print</span><span class="p">(</span><span class="v">win</span><span class="p">.</span><span class="v">visible</span><span class="p">)</span>    <span class="c">-- true / false</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- autoloadConfig / autoloadTheme -->
+  <div class="api-card">
+    <div class="api-card-header">
+      win:autoloadConfig<span class="p">(</span><span style="color:#e5c07b">name</span><span class="p">)</span>
+      &nbsp;/&nbsp;
+      win:autoloadTheme<span class="p">(</span><span style="color:#e5c07b">name</span><span class="p">)</span>
+      <span class="badge badge-chain">chaînable</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Charge automatiquement un fichier config/thème depuis <code>homesick/&lt;name&gt;.json</code> avant le premier render.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">win</span><span class="p">:</span><span class="f">autoloadConfig</span><span class="p">(</span><span class="s">"monscript"</span><span class="p">)</span>
+    <span class="p">:</span><span class="f">autoloadTheme</span><span class="p">(</span><span class="s">"darkgold"</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- render -->
+  <div class="api-card">
+    <div class="api-card-header">win:render<span class="p">()</span></div>
+    <div class="api-card-body">
+      <p class="api-desc">Déclenche l'ouverture de la fenêtre. Appel optionnel — mettre <code>win.visible = true</code> suffit.</p>
+    </div>
+  </div>
+
+  <!-- remove -->
+  <div class="api-card">
+    <div class="api-card-header">win:remove<span class="p">()</span></div>
+    <div class="api-card-body">
+      <p class="api-desc">Détruit complètement la fenêtre et tous ses Drawing objects. Équivalent de <code>ui:Destroy()</code>.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">win</span><span class="p">:</span><span class="f">remove</span><span class="p">()</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB -->
+<div class="section" id="tab">
+  <h2>Tab</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      win:addTab<span class="p">(</span><span style="color:#e5c07b">name</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne Tab</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Ajoute un onglet à la bande de navigation. Retourne l'objet <code>Tab</code> sur lequel on appelle <code>addSection</code>.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">tab1</span> <span class="p">=</span> <span class="v">win</span><span class="p">:</span><span class="f">addTab</span><span class="p">(</span><span class="s">"Main"</span><span class="p">)</span>
+<span class="k">local</span> <span class="v">tab2</span> <span class="p">=</span> <span class="v">win</span><span class="p">:</span><span class="f">addTab</span><span class="p">(</span><span class="s">"Config"</span><span class="p">)</span>
+<span class="k">local</span> <span class="v">tab3</span> <span class="p">=</span> <span class="v">win</span><span class="p">:</span><span class="f">addTab</span><span class="p">(</span><span class="s">"Visuals"</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION -->
+<div class="section" id="section">
+  <h2>Section</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      tab:addSection<span class="p">(</span><span style="color:#e5c07b">name</span>, <span style="color:#e5c07b">side</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne Section</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Crée une section (carte) dans la colonne choisie. C'est sur la section qu'on ajoute tous les composants.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">name</td><td class="ptype">string</td><td class="pdesc">Titre de la section</td></tr>
+        <tr><td class="pname">side</td><td class="ptype">"Left" | "Right"</td><td class="pdesc">Colonne gauche ou droite</td></tr>
+      </table>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">left</span>  <span class="p">=</span> <span class="v">tab</span><span class="p">:</span><span class="f">addSection</span><span class="p">(</span><span class="s">"Farming"</span><span class="p">,</span>  <span class="s">"Left"</span><span class="p">)</span>
+<span class="k">local</span> <span class="v">right</span> <span class="p">=</span> <span class="v">tab</span><span class="p">:</span><span class="f">addSection</span><span class="p">(</span><span class="s">"Control"</span><span class="p">,</span>  <span class="s">"Right"</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOGGLE -->
+<div class="section" id="toggle">
+  <h2>Toggle</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      section:addToggle<span class="p">(</span><span style="color:#e5c07b">id</span>, <span style="color:#e5c07b">label</span>, <span style="color:#e5c07b">default</span>, <span style="color:#e5c07b">callback</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne ToggleHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Case à cocher animée avec état vrai/faux. Le callback est appelé à chaque changement avec la nouvelle valeur.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">id</td><td class="ptype">string</td><td class="pdesc">Identifiant unique (utilisé pour la sauvegarde config)</td></tr>
+        <tr><td class="pname">label</td><td class="ptype">string</td><td class="pdesc">Texte affiché</td></tr>
+        <tr><td class="pname">default</td><td class="ptype">bool</td><td class="pdesc">Valeur initiale (<code>true</code> = activé)</td></tr>
+        <tr><td class="pname">callback</td><td class="ptype">function(bool)</td><td class="pdesc">Appelé à chaque toggle avec la nouvelle valeur</td></tr>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header"><span>exemple basique</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">togESP</span> <span class="p">=</span> <span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"espEnabled"</span><span class="p">,</span> <span class="s">"ESP"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">val</span><span class="p">)</span>
+    <span class="v">espEnabled</span> <span class="p">=</span> <span class="v">val</span>
+<span class="k">end</span><span class="p">)</span></pre>
+      </div>
+
+      <h3>Méthodes du handle</h3>
+      <div class="method-chain">
+        <em>handle</em><span>:Set(</span><em>bool</em><span>)</span>&nbsp;&nbsp;<span class="c">-- forcer une valeur sans déclencher le callback</span><br>
+        <em>handle</em><span>:addKeybind(</span><em>key, mode, canChange, cb</em><span>)</span>&nbsp;&nbsp;<span class="c">-- ajouter un raccourci clavier</span><br>
+        <em>handle</em><span>:addColorpicker(</span><em>label, color, overwrite, cb, alpha</em><span>)</span>&nbsp;&nbsp;<span class="c">-- colorpicker inline</span><br>
+        <em>handle</em><span>:DependsOn(</span><em>autreHandle</em><span>)</span>&nbsp;&nbsp;<span class="c">-- grise si l'autre est désactivé</span>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header"><span>exemple avec keybind</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"autoBuy"</span><span class="p">,</span> <span class="s">"Auto Buy"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">autoBuyActive</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">):</span><span class="f">addKeybind</span><span class="p">(</span><span class="s">"1"</span><span class="p">,</span> <span class="s">"Toggle"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header"><span>forcer une valeur</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">togESP</span><span class="p">.</span><span class="v">rawItem</span><span class="p">:</span><span class="f">Set</span><span class="p">(</span><span class="k">true</span><span class="p">)</span>   <span class="c">-- active sans déclencher callback</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKBOX -->
+<div class="section" id="checkbox">
+  <h2>Checkbox</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      section:addCheckbox<span class="p">(</span><span style="color:#e5c07b">id</span>, <span style="color:#e5c07b">label</span>, <span style="color:#e5c07b">default</span>, <span style="color:#e5c07b">callback</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne CheckboxHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Identique à Toggle en comportement. Mêmes méthodes disponibles (<code>addKeybind</code>, <code>addColorpicker</code>, <code>DependsOn</code>, <code>Set</code>).</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">right</span><span class="p">:</span><span class="f">addCheckbox</span><span class="p">(</span><span class="s">"autoMini"</span><span class="p">,</span> <span class="s">"Auto Minigame"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">MG</span><span class="p">.</span><span class="v">active</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">)</span></pre>
+      </div>
+      <div class="alert alert-tip">Checkbox et Toggle sont interchangeables dans homesick. Utilisez celui qui correspond sémantiquement à votre cas.</div>
+    </div>
+  </div>
+</div>
+
+<!-- BUTTON -->
+<div class="section" id="button">
+  <h2>Button</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      section:addButton<span class="p">(</span><span style="color:#e5c07b">label</span>, <span style="color:#e5c07b">callback</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne ButtonHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Bouton cliquable. Le callback est appelé sans argument à chaque clic.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">label</td><td class="ptype">string</td><td class="pdesc">Texte du bouton</td></tr>
+        <tr><td class="pname">callback</td><td class="ptype">function()</td><td class="pdesc">Appelé au clic</td></tr>
+      </table>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">right</span><span class="p">:</span><span class="f">addButton</span><span class="p">(</span><span class="s">"Stop All"</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span>
+    <span class="v">autoBuyActive</span>   <span class="p">=</span> <span class="k">false</span>
+    <span class="v">lemonFarmActive</span> <span class="p">=</span> <span class="k">false</span>
+    <span class="f">print</span><span class="p">(</span><span class="s">"Tout stoppé"</span><span class="p">)</span>
+<span class="k">end</span><span class="p">):</span><span class="f">addKeybind</span><span class="p">(</span><span class="s">"5"</span><span class="p">,</span> <span class="s">"Toggle"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span>
+<span class="c">-- Note : addKeybind sur un Button passe via l'API Toggle interne</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDER -->
+<div class="section" id="slider">
+  <h2>Slider</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      section:addSlider<span class="p">(</span><span style="color:#e5c07b">id</span>, <span style="color:#e5c07b">label</span>, <span style="color:#e5c07b">default</span>, <span style="color:#e5c07b">step</span>, <span style="color:#e5c07b">min</span>, <span style="color:#e5c07b">max</span>, <span style="color:#e5c07b">suffix</span>, <span style="color:#e5c07b">callback</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne SliderHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Glissière numérique. La valeur est snap sur <code>step</code> et clampée entre <code>min</code> et <code>max</code>.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">id</td><td class="ptype">string</td><td class="pdesc">Identifiant unique</td></tr>
+        <tr><td class="pname">label</td><td class="ptype">string</td><td class="pdesc">Texte affiché</td></tr>
+        <tr><td class="pname">default</td><td class="ptype">number</td><td class="pdesc">Valeur initiale</td></tr>
+        <tr><td class="pname">step</td><td class="ptype">number</td><td class="pdesc">Pas de la valeur (ex : <code>1</code>, <code>0.1</code>)</td></tr>
+        <tr><td class="pname">min</td><td class="ptype">number</td><td class="pdesc">Valeur minimale</td></tr>
+        <tr><td class="pname">max</td><td class="ptype">number</td><td class="pdesc">Valeur maximale</td></tr>
+        <tr><td class="pname">suffix</td><td class="ptype">string</td><td class="pdesc">Unité affichée (ex : <code>"%"</code>, <code>" ms"</code>)</td></tr>
+        <tr><td class="pname">callback</td><td class="ptype">function(number)</td><td class="pdesc">Appelé à chaque changement avec la valeur</td></tr>
+      </table>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">left</span><span class="p">:</span><span class="f">addSlider</span><span class="p">(</span><span class="s">"fovSize"</span><span class="p">,</span> <span class="s">"FOV"</span><span class="p">,</span> <span class="v">90</span><span class="p">,</span> <span class="v">1</span><span class="p">,</span> <span class="v">10</span><span class="p">,</span> <span class="v">180</span><span class="p">,</span> <span class="s">"°"</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">val</span><span class="p">)</span>
+    <span class="v">fovSize</span> <span class="p">=</span> <span class="v">val</span>
+<span class="k">end</span><span class="p">)</span>
+
+<span class="c">-- Pas décimal</span>
+<span class="v">left</span><span class="p">:</span><span class="f">addSlider</span><span class="p">(</span><span class="s">"walkSpeed"</span><span class="p">,</span> <span class="s">"WalkSpeed"</span><span class="p">,</span> <span class="v">16</span><span class="p">,</span> <span class="v">1</span><span class="p">,</span> <span class="v">0</span><span class="p">,</span> <span class="v">100</span><span class="p">,</span> <span class="s">""</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">game</span><span class="p">.</span><span class="v">Players</span><span class="p">.</span><span class="v">LocalPlayer</span><span class="p">.</span><span class="v">Character</span><span class="p">.</span><span class="v">Humanoid</span><span class="p">.</span><span class="v">WalkSpeed</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DROPDOWN -->
+<div class="section" id="dropdown">
+  <h2>Dropdown</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      section:addDropdown<span class="p">(</span><span style="color:#e5c07b">id</span>, <span style="color:#e5c07b">label</span>, <span style="color:#e5c07b">choices</span>, <span style="color:#e5c07b">default</span>, <span style="color:#e5c07b">callback</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne DropdownHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Liste déroulante à sélection unique. Le callback reçoit un tableau avec la valeur choisie.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">id</td><td class="ptype">string</td><td class="pdesc">Identifiant unique</td></tr>
+        <tr><td class="pname">label</td><td class="ptype">string</td><td class="pdesc">Texte affiché au-dessus</td></tr>
+        <tr><td class="pname">choices</td><td class="ptype">table</td><td class="pdesc">Liste des options disponibles</td></tr>
+        <tr><td class="pname">default</td><td class="ptype">table | string</td><td class="pdesc">Valeur(s) par défaut — passer un tableau</td></tr>
+        <tr><td class="pname">callback</td><td class="ptype">function(table)</td><td class="pdesc">Appelé avec le tableau des valeurs sélectionnées</td></tr>
+      </table>
+
+      <h3>Méthodes du handle</h3>
+      <div class="method-chain">
+        <em>handle</em><span>:Set(</span><em>{valeur}</em><span>)</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">-- forcer une sélection</span><br>
+        <em>handle</em><span>:updateChoices(</span><em>newList</em><span>)</span>&nbsp;&nbsp;&nbsp;<span class="c">-- remplacer la liste</span><br>
+        <em>handle</em><span>:addChoice(</span><em>choice</em><span>)</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">-- ajouter une option</span><br>
+        <em>handle</em><span>:removeChoice(</span><em>choice</em><span>)</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">-- supprimer une option</span><br>
+        <em>handle</em><span>:clearChoices()</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">-- vider la liste</span><br>
+        <em>handle</em><span>:setSearchable(</span><em>bool</em><span>)</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">-- barre de recherche intégrée</span><br>
+        <em>handle</em><span>:setMaxSelections(</span><em>n</em><span>)</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="c">-- limite sélections (multi seulement)</span>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header"><span>exemple dropdown simple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">ddTeam</span> <span class="p">=</span> <span class="v">left</span><span class="p">:</span><span class="f">addDropdown</span><span class="p">(</span><span class="s">"team"</span><span class="p">,</span> <span class="s">"Équipe"</span><span class="p">,</span>
+    <span class="p">{</span><span class="s">"Rouge"</span><span class="p">,</span> <span class="s">"Bleu"</span><span class="p">,</span> <span class="s">"Vert"</span><span class="p">},</span>
+    <span class="p">{</span><span class="s">"Rouge"</span><span class="p">},</span>
+    <span class="k">function</span><span class="p">(</span><span class="v">val</span><span class="p">)</span>
+        <span class="f">print</span><span class="p">(</span><span class="s">"Sélection :"</span><span class="p">,</span> <span class="v">val</span><span class="p">[</span><span class="v">1</span><span class="p">])</span>
+    <span class="k">end</span>
+<span class="p">)</span>
+
+<span class="c">-- Ajouter dynamiquement une option</span>
+<span class="v">ddTeam</span><span class="p">:</span><span class="f">addChoice</span><span class="p">(</span><span class="s">"Jaune"</span><span class="p">)</span>
+
+<span class="c">-- Forcer la sélection</span>
+<span class="v">ddTeam</span><span class="p">.</span><span class="v">rawItem</span><span class="p">:</span><span class="f">Set</span><span class="p">({</span><span class="s">"Bleu"</span><span class="p">})</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi dropdown -->
+  <div class="api-card">
+    <div class="api-card-header">
+      section:addMultiDropdown<span class="p">(</span><span style="color:#e5c07b">id</span>, <span style="color:#e5c07b">label</span>, <span style="color:#e5c07b">choices</span>, <span style="color:#e5c07b">default</span>, <span style="color:#e5c07b">callback</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne DropdownHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Identique à <code>addDropdown</code> mais autorise plusieurs sélections simultanées. Le callback reçoit un tableau de toutes les valeurs cochées.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple multi</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">left</span><span class="p">:</span><span class="f">addMultiDropdown</span><span class="p">(</span><span class="s">"stends"</span><span class="p">,</span> <span class="s">"Stends activés"</span><span class="p">,</span>
+    <span class="p">{</span><span class="s">"Lemon Stand"</span><span class="p">,</span> <span class="s">"LemonDash"</span><span class="p">,</span> <span class="s">"Lemon Depot"</span><span class="p">},</span>
+    <span class="p">{</span><span class="s">"Lemon Stand"</span><span class="p">},</span>
+    <span class="k">function</span><span class="p">(</span><span class="v">vals</span><span class="p">)</span>
+        <span class="k">for</span> <span class="v">_</span><span class="p">,</span> <span class="v">v</span> <span class="k">in</span> <span class="f">ipairs</span><span class="p">(</span><span class="v">vals</span><span class="p">)</span> <span class="k">do</span> <span class="f">print</span><span class="p">(</span><span class="v">v</span><span class="p">)</span> <span class="k">end</span>
+    <span class="k">end</span>
+<span class="p">):</span><span class="f">setMaxSelections</span><span class="p">(</span><span class="v">3</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TEXTBOX -->
+<div class="section" id="textbox">
+  <h2>Textbox</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      section:addInput<span class="p">(</span><span style="color:#e5c07b">id</span>, <span style="color:#e5c07b">label</span>, <span style="color:#e5c07b">default</span>, <span style="color:#e5c07b">callback</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne InputHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Champ texte éditable. Supporte Ctrl+C/V/Z/A, répétition de touche, et Tab pour naviguer entre les textboxes.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">id</td><td class="ptype">string</td><td class="pdesc">Identifiant unique</td></tr>
+        <tr><td class="pname">label</td><td class="ptype">string</td><td class="pdesc">Placeholder affiché quand vide</td></tr>
+        <tr><td class="pname">default</td><td class="ptype">string</td><td class="pdesc">Valeur initiale</td></tr>
+        <tr><td class="pname">callback</td><td class="ptype">function(string)</td><td class="pdesc">Appelé à chaque frappe</td></tr>
+      </table>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">left</span><span class="p">:</span><span class="f">addInput</span><span class="p">(</span><span class="s">"playerName"</span><span class="p">,</span> <span class="s">"Nom du joueur"</span><span class="p">,</span> <span class="s">""</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">targetName</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COLORPICKER -->
+<div class="section" id="colorpicker">
+  <h2>Colorpicker</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      section:addColorpicker<span class="p">(</span><span style="color:#e5c07b">id</span>, <span style="color:#e5c07b">label</span>, <span style="color:#e5c07b">default</span>, <span style="color:#e5c07b">callback</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne ColorHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Sélecteur de couleur HSV complet avec canal alpha et input hex. Clic droit pour copier/coller la couleur.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">id</td><td class="ptype">string</td><td class="pdesc">Identifiant unique</td></tr>
+        <tr><td class="pname">label</td><td class="ptype">string</td><td class="pdesc">Nom de la couleur</td></tr>
+        <tr><td class="pname">default</td><td class="ptype">Color3</td><td class="pdesc">Couleur initiale</td></tr>
+        <tr><td class="pname">callback</td><td class="ptype">function(Color3, alpha)</td><td class="pdesc">Appelé à chaque modification</td></tr>
+      </table>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">left</span><span class="p">:</span><span class="f">addColorpicker</span><span class="p">(</span><span class="s">"espColor"</span><span class="p">,</span> <span class="s">"Couleur ESP"</span><span class="p">,</span>
+    <span class="v">Color3</span><span class="p">.</span><span class="f">fromRGB</span><span class="p">(</span><span class="v">255</span><span class="p">,</span> <span class="v">0</span><span class="p">,</span> <span class="v">0</span><span class="p">),</span>
+    <span class="k">function</span><span class="p">(</span><span class="v">color</span><span class="p">,</span> <span class="v">alpha</span><span class="p">)</span>
+        <span class="v">espColor</span> <span class="p">=</span> <span class="v">color</span>
+        <span class="v">espAlpha</span> <span class="p">=</span> <span class="v">alpha</span>
+    <span class="k">end</span>
+<span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LABEL -->
+<div class="section" id="label">
+  <h2>Label</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      section:addText<span class="p">(</span><span style="color:#e5c07b">text</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne TextHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Texte non interactif. Le handle expose <code>setValue(str)</code> pour le mettre à jour dynamiquement.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">statusLbl</span> <span class="p">=</span> <span class="v">right</span><span class="p">:</span><span class="f">addText</span><span class="p">(</span><span class="s">"En attente..."</span><span class="p">)</span>
+
+<span class="c">-- Mettre à jour plus tard :</span>
+<span class="v">statusLbl</span><span class="p">.</span><span class="v">rawItem</span><span class="p">:</span><span class="f">Set</span><span class="p">(</span><span class="s">"Actif !"</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DIVIDER -->
+<div class="section" id="divider">
+  <h2>Divider / Séparateur</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      section:addSeparator<span class="p">()</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Ligne horizontale de séparation visuelle entre les composants.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">right</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"autoDeal"</span><span class="p">,</span> <span class="s">"Auto Deal"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span> <span class="k">end</span><span class="p">)</span>
+<span class="v">right</span><span class="p">:</span><span class="f">addSeparator</span><span class="p">()</span>
+<span class="v">right</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"stopAll"</span><span class="p">,</span> <span class="s">"Stop All"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span> <span class="k">end</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KEYBIND -->
+<div class="section" id="keybind">
+  <h2>Keybind</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      handle:addKeybind<span class="p">(</span><span style="color:#e5c07b">key</span>, <span style="color:#e5c07b">mode</span>, <span style="color:#e5c07b">canChange</span>, <span style="color:#e5c07b">callback</span><span class="p">)</span>
+      <span class="badge badge-chain">chaînable</span>
+      <span class="badge badge-ret">retourne KeyHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Attache un raccourci clavier à un Toggle ou Checkbox. Affiche un badge <code>[KEY] [MODE]</code> à droite du label.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">key</td><td class="ptype">string</td><td class="pdesc">Touche : <code>"1"</code>–<code>"9"</code>, <code>"f1"</code>–<code>"f12"</code>, <code>"a"</code>–<code>"z"</code>, ou combo <code>"ctrl+k"</code></td></tr>
+        <tr><td class="pname">mode</td><td class="ptype">"Toggle" | "Hold" | "Always"</td><td class="pdesc"><code>Toggle</code> = bascule, <code>Hold</code> = actif tant que tenu</td></tr>
+        <tr><td class="pname">canChange</td><td class="ptype">bool</td><td class="pdesc">Si <code>true</code>, clic droit sur le badge pour rebinder</td></tr>
+        <tr><td class="pname">callback</td><td class="ptype">function(vkId, mode)</td><td class="pdesc">Appelé quand le bind change</td></tr>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header"><span>exemple — touche simple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"esp"</span><span class="p">,</span> <span class="s">"ESP"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">espOn</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">):</span><span class="f">addKeybind</span><span class="p">(</span><span class="s">"f2"</span><span class="p">,</span> <span class="s">"Toggle"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header"><span>exemple — combo touches</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"aimbot"</span><span class="p">,</span> <span class="s">"Aimbot"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">aimbotOn</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">):</span><span class="f">addKeybind</span><span class="p">(</span><span class="s">"ctrl+e"</span><span class="p">,</span> <span class="s">"Hold"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span></pre>
+      </div>
+
+      <div class="alert alert-warn">
+        En mode <code>Toggle</code>, la touche bascule la valeur à chaque pression.
+        En mode <code>Hold</code>, la valeur est <code>true</code> seulement tant que la touche est maintenue.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COLORPICKER EXT -->
+<div class="section" id="colorpicker-ext">
+  <h2>Colorpicker inline sur Toggle</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      handle:addColorpicker<span class="p">(</span><span style="color:#e5c07b">label</span>, <span style="color:#e5c07b">color</span>, <span style="color:#e5c07b">overwrite</span>, <span style="color:#e5c07b">callback</span>, <span style="color:#e5c07b">alpha</span><span class="p">)</span>
+      <span class="badge badge-chain">chaînable</span>
+      <span class="badge badge-ret">retourne ColorHandle</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Attache une petite pastille colorée directement sur la ligne d'un Toggle/Checkbox. Clic sur la pastille ouvre le picker complet.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">label</td><td class="ptype">string</td><td class="pdesc">Nom du picker (affiché dans le header du popup)</td></tr>
+        <tr><td class="pname">color</td><td class="ptype">Color3</td><td class="pdesc">Couleur initiale</td></tr>
+        <tr><td class="pname">overwrite</td><td class="ptype">bool | number</td><td class="pdesc"><code>true</code> pour activer l'override, ou valeur d'alpha initiale</td></tr>
+        <tr><td class="pname">callback</td><td class="ptype">function(Color3, alpha)</td><td class="pdesc">Appelé à chaque changement</td></tr>
+        <tr><td class="pname">alpha</td><td class="ptype">number</td><td class="pdesc">Alpha initial (0–1, défaut 1)</td></tr>
+      </table>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"chams"</span><span class="p">,</span> <span class="s">"Chams"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">chamsOn</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">)</span>
+    <span class="p">:</span><span class="f">addKeybind</span><span class="p">(</span><span class="s">"c"</span><span class="p">,</span> <span class="s">"Toggle"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span>
+    <span class="p">:</span><span class="f">addColorpicker</span><span class="p">(</span><span class="s">"Couleur Chams"</span><span class="p">,</span> <span class="v">Color3</span><span class="p">.</span><span class="f">fromRGB</span><span class="p">(</span><span class="v">0</span><span class="p">,</span><span class="v">200</span><span class="p">,</span><span class="v">255</span><span class="p">),</span> <span class="k">false</span><span class="p">,</span>
+        <span class="k">function</span><span class="p">(</span><span class="v">c</span><span class="p">,</span><span class="v">a</span><span class="p">)</span> <span class="v">chamsColor</span><span class="p">=</span><span class="v">c</span><span class="p">;</span><span class="v">chamsAlpha</span><span class="p">=</span><span class="v">a</span> <span class="k">end</span>
+    <span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEPENDS ON -->
+<div class="section" id="depends">
+  <h2>DependsOn</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      handle:DependsOn<span class="p">(</span><span style="color:#e5c07b">parentHandle</span><span class="p">)</span>
+      <span class="badge badge-chain">chaînable</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Grise et désactive automatiquement ce composant quand le parent est <code>false</code>. Aucun clic n'est possible si le parent est désactivé.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">togESP</span>  <span class="p">=</span> <span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"esp"</span><span class="p">,</span>  <span class="s">"ESP"</span><span class="p">,</span>        <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span> <span class="k">end</span><span class="p">)</span>
+<span class="k">local</span> <span class="v">togBox</span>  <span class="p">=</span> <span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"box"</span><span class="p">,</span>  <span class="s">"Box ESP"</span><span class="p">,</span>     <span class="k">true</span><span class="p">,</span>  <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span> <span class="k">end</span><span class="p">)</span>
+<span class="k">local</span> <span class="v">togName</span> <span class="p">=</span> <span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"name"</span><span class="p">,</span> <span class="s">"Nametag ESP"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span>  <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span> <span class="k">end</span><span class="p">)</span>
+
+<span class="c">-- Box et Nametag grisés si ESP principal est off</span>
+<span class="v">togBox</span><span class="p">.</span><span class="v">rawItem</span><span class="p">:</span><span class="f">DependsOn</span><span class="p">(</span><span class="v">togESP</span><span class="p">.</span><span class="v">rawItem</span><span class="p">)</span>
+<span class="v">togName</span><span class="p">.</span><span class="v">rawItem</span><span class="p">:</span><span class="f">DependsOn</span><span class="p">(</span><span class="v">togESP</span><span class="p">.</span><span class="v">rawItem</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="section" id="notify">
+  <h2>Notifications</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      hs:Notify<span class="p">(</span><span style="color:#e5c07b">title</span>, <span style="color:#e5c07b">description</span>, <span style="color:#e5c07b">duration</span><span class="p">)</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Affiche une notification en bas à droite de l'écran avec une barre de progression.</p>
+      <table class="params">
+        <tr><th>Paramètre</th><th>Type</th><th>Description</th></tr>
+        <tr><td class="pname">title</td><td class="ptype">string</td><td class="pdesc">En-tête de la notification (affiché en accent)</td></tr>
+        <tr><td class="pname">description</td><td class="ptype">string</td><td class="pdesc">Corps du message</td></tr>
+        <tr><td class="pname">duration</td><td class="ptype">number</td><td class="pdesc">Durée en secondes (défaut : 5)</td></tr>
+      </table>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="v">hs</span><span class="p">:</span><span class="f">Notify</span><span class="p">(</span><span class="s">"Cash Vine"</span><span class="p">,</span> <span class="s">"Prête à collecter !"</span><span class="p">,</span> <span class="v">4</span><span class="p">)</span>
+
+<span class="c">-- Aussi disponible via la fonction globale notify() :</span>
+<span class="f">notify</span><span class="p">(</span><span class="s">"Prête à collecter !"</span><span class="p">,</span> <span class="s">"Cash Vine"</span><span class="p">,</span> <span class="v">4</span><span class="p">)</span></pre>
+      </div>
+      <div class="alert alert-tip">
+        Homesick intercepte aussi les appels à <code>print()</code> et <code>warn()</code> pour les afficher comme notifications automatiquement.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WATERMARK -->
+<div class="section" id="watermark">
+  <h2>Watermark</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      ProjectState.watermarkEnabled / watermarkTitle
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Petit overlay draggable affiché en dehors de la fenêtre principale, utile pour afficher un statut quand le menu est fermé. Accessible via <code>_G.homesickUI</code>.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">ui</span> <span class="p">=</span> <span class="v">_G</span><span class="p">.</span><span class="v">homesickUI</span>
+
+<span class="c">-- Activer le watermark</span>
+<span class="v">ui</span><span class="p">:</span><span class="f">RegisterActivity</span><span class="p">(</span><span class="k">function</span><span class="p">()</span>
+    <span class="k">return</span> <span class="v">autoBuyActive</span> <span class="k">and</span> <span class="s">"AutoBuy ON"</span> <span class="k">or</span> <span class="s">""</span>
+<span class="k">end</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVITY -->
+<div class="section" id="activity">
+  <h2>Activity</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">
+      ui:RegisterActivity<span class="p">(</span><span style="color:#e5c07b">callback</span><span class="p">)</span>
+      <span class="badge badge-ret">retourne { Remove() }</span>
+    </div>
+    <div class="api-card-body">
+      <p class="api-desc">Enregistre une fonction appelée chaque frame. Si elle retourne une chaîne, celle-ci est affichée dans le watermark. Utile pour des statuts temps réel.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">ui</span>  <span class="p">=</span> <span class="v">_G</span><span class="p">.</span><span class="v">homesickUI</span>
+<span class="k">local</span> <span class="v">act</span> <span class="p">=</span> <span class="v">ui</span><span class="p">:</span><span class="f">RegisterActivity</span><span class="p">(</span><span class="k">function</span><span class="p">(</span><span class="v">ui</span><span class="p">,</span> <span class="v">dt</span><span class="p">,</span> <span class="v">now</span><span class="p">)</span>
+    <span class="k">if</span> <span class="v">autoBuyActive</span> <span class="k">then</span>
+        <span class="k">return</span> <span class="s">"AutoBuy: "</span> <span class="p">..</span> <span class="v">totalBought</span>
+    <span class="k">end</span>
+<span class="k">end</span><span class="p">)</span>
+
+<span class="c">-- Supprimer plus tard</span>
+<span class="v">act</span><span class="p">.</span><span class="f">Remove</span><span class="p">()</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG -->
+<div class="section" id="config">
+  <h2>Config &amp; Thème</h2>
+
+  <p style="color:var(--sub);font-size:13.5px;margin-bottom:16px;">Homesick sauvegarde automatiquement la config dans <code>homesick/config.json</code> via l'onglet <strong>Settings</strong> (icône ⚙ dans la titlebar). Vous pouvez aussi forcer via code.</p>
+
+  <div class="api-card">
+    <div class="api-card-header">ui:GetValue / ui:SetValue via path</div>
+    <div class="api-card-body">
+      <p class="api-desc">Lire ou écrire la valeur d'un item par son chemin <code>"TabName.SectionName.Label"</code>.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">ui</span> <span class="p">=</span> <span class="v">_G</span><span class="p">.</span><span class="v">homesickUI</span>
+
+<span class="c">-- Lire</span>
+<span class="k">local</span> <span class="v">v</span> <span class="p">=</span> <span class="v">ui</span><span class="p">:</span><span class="f">GetValue</span><span class="p">(</span><span class="s">"Main.Farming.Auto Buy"</span><span class="p">)</span>
+
+<span class="c">-- Écrire</span>
+<span class="v">ui</span><span class="p">:</span><span class="f">SetValue</span><span class="p">(</span><span class="s">"Main.Farming.Auto Buy"</span><span class="p">,</span> <span class="k">true</span><span class="p">)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="api-card">
+    <div class="api-card-header">ui:SetTheme<span class="p">(</span><span style="color:#e5c07b">overrides</span><span class="p">)</span></div>
+    <div class="api-card-body">
+      <p class="api-desc">Remplace des couleurs du thème. Clés disponibles : <code>accent</code>, <code>bg</code>, <code>surface</code>, <code>surface2</code>, <code>surface3</code>, <code>text</code>, <code>sub</code>, <code>border</code>, <code>green</code>, <code>red</code>, <code>yellow</code>, <code>unsafe</code>.</p>
+      <div class="code-block">
+        <div class="code-header"><span>thème custom</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="k">local</span> <span class="v">ui</span> <span class="p">=</span> <span class="v">_G</span><span class="p">.</span><span class="v">homesickUI</span>
+<span class="v">ui</span><span class="p">:</span><span class="f">SetTheme</span><span class="p">({</span>
+    <span class="v">accent</span>   <span class="p">=</span> <span class="v">Color3</span><span class="p">.</span><span class="f">fromRGB</span><span class="p">(</span><span class="v">255</span><span class="p">,</span> <span class="v">214</span><span class="p">,</span>  <span class="v">60</span><span class="p">),</span>  <span class="c">-- jaune citron</span>
+    <span class="v">bg</span>       <span class="p">=</span> <span class="v">Color3</span><span class="p">.</span><span class="f">fromRGB</span><span class="p">(</span> <span class="v">33</span><span class="p">,</span>  <span class="v">29</span><span class="p">,</span>  <span class="v">17</span><span class="p">),</span>
+    <span class="v">surface</span>  <span class="p">=</span> <span class="v">Color3</span><span class="p">.</span><span class="f">fromRGB</span><span class="p">(</span> <span class="v">27</span><span class="p">,</span>  <span class="v">24</span><span class="p">,</span>  <span class="v">14</span><span class="p">),</span>
+<span class="p">})</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DESTROY -->
+<div class="section" id="destroy">
+  <h2>Destroy</h2>
+
+  <div class="api-card">
+    <div class="api-card-header">win:remove<span class="p">()</span> &nbsp;/&nbsp; ui:Destroy<span class="p">()</span></div>
+    <div class="api-card-body">
+      <p class="api-desc">Détruit complètement tous les Drawing objects et arrête le RenderStepped. À appeler lors d'un re-exec ou d'un rechargement du script.</p>
+      <div class="code-block">
+        <div class="code-header"><span>exemple — cleanup au re-exec</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+        <pre><span class="c">-- En haut de votre script, avant de charger homesick :</span>
+<span class="k">if</span> <span class="v">_G</span><span class="p">.</span><span class="v">MatchaCleanup</span> <span class="k">then</span>
+    <span class="f">pcall</span><span class="p">(</span><span class="v">_G</span><span class="p">.</span><span class="v">MatchaCleanup</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="c">-- À la fin, enregistrer le cleanup :</span>
+<span class="v">_G</span><span class="p">.</span><span class="v">MatchaCleanup</span> <span class="p">=</span> <span class="k">function</span><span class="p">()</span>
+    <span class="v">win</span><span class="p">:</span><span class="f">remove</span><span class="p">()</span>
+<span class="k">end</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FULL EXAMPLE -->
+<div class="section" id="full-example">
+  <h2>Script complet — exemple</h2>
+  <p style="color:var(--sub);font-size:13.5px;margin-bottom:14px;">Reproduit exactement la structure du GUI de Sell Lemons v18.18.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span>lua — script complet</span><button class="copy-btn" onclick="copy(this)">Copier</button></div>
+    <pre><span class="c">-- Cleanup re-exec</span>
+<span class="k">if</span> <span class="v">_G</span><span class="p">.</span><span class="v">MatchaCleanup</span> <span class="k">then</span> <span class="f">pcall</span><span class="p">(</span><span class="v">_G</span><span class="p">.</span><span class="v">MatchaCleanup</span><span class="p">)</span> <span class="k">end</span>
+
+<span class="c">-- Variables état</span>
+<span class="k">local</span> <span class="v">autoBuyActive</span>   <span class="p">=</span> <span class="k">false</span>
+<span class="k">local</span> <span class="v">lemonFarmActive</span> <span class="p">=</span> <span class="k">false</span>
+<span class="k">local</span> <span class="v">autoStandActive</span> <span class="p">=</span> <span class="k">false</span>
+<span class="k">local</span> <span class="v">cashFarmActive</span>  <span class="p">=</span> <span class="k">true</span>
+<span class="k">local</span> <span class="v">autoDealActive</span>  <span class="p">=</span> <span class="k">true</span>
+
+<span class="c">-- Chargement homesick</span>
+<span class="k">local</span> <span class="v">hs</span> <span class="p">=</span> <span class="f">loadstring</span><span class="p">(</span><span class="v">game</span><span class="p">:</span><span class="f">HttpGet</span><span class="p">(</span>
+    <span class="s">"https://raw.githubusercontent.com/FRITExCN/HomeSick/refs/heads/main/homesick.lua"</span>
+<span class="p">))()</span>
+
+<span class="c">-- Fenêtre</span>
+<span class="k">local</span> <span class="v">win</span> <span class="p">=</span> <span class="v">hs</span><span class="p">.</span><span class="f">createWindow</span><span class="p">(</span><span class="s">"Sell Lemons"</span><span class="p">,</span> <span class="v">480</span><span class="p">,</span> <span class="v">420</span><span class="p">)</span>
+<span class="v">win</span><span class="p">:</span><span class="f">setBadge</span><span class="p">(</span><span class="s">"Sell Lemons  |  by neaxus"</span><span class="p">)</span>
+
+<span class="c">-- ── Onglet Main ──────────────────────────</span>
+<span class="k">local</span> <span class="v">tab1</span>  <span class="p">=</span> <span class="v">win</span><span class="p">:</span><span class="f">addTab</span><span class="p">(</span><span class="s">"Main"</span><span class="p">)</span>
+<span class="k">local</span> <span class="v">left</span>  <span class="p">=</span> <span class="v">tab1</span><span class="p">:</span><span class="f">addSection</span><span class="p">(</span><span class="s">"Farming"</span><span class="p">,</span> <span class="s">"Left"</span><span class="p">)</span>
+<span class="k">local</span> <span class="v">right</span> <span class="p">=</span> <span class="v">tab1</span><span class="p">:</span><span class="f">addSection</span><span class="p">(</span><span class="s">"Control"</span><span class="p">,</span> <span class="s">"Right"</span><span class="p">)</span>
+
+<span class="c">-- Farming</span>
+<span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"autoBuy"</span><span class="p">,</span> <span class="s">"Auto Buy"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">autoBuyActive</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">):</span><span class="f">addKeybind</span><span class="p">(</span><span class="s">"1"</span><span class="p">,</span> <span class="s">"Toggle"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span>
+
+<span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"lemonFarm"</span><span class="p">,</span> <span class="s">"Lemon Farm"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">lemonFarmActive</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">):</span><span class="f">addKeybind</span><span class="p">(</span><span class="s">"2"</span><span class="p">,</span> <span class="s">"Toggle"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span>
+
+<span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"autoStand"</span><span class="p">,</span> <span class="s">"Auto Stand"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">autoStandActive</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">):</span><span class="f">addKeybind</span><span class="p">(</span><span class="s">"3"</span><span class="p">,</span> <span class="s">"Toggle"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span>
+
+<span class="v">left</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"cashFarm"</span><span class="p">,</span> <span class="s">"Cash Farm"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">cashFarmActive</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">):</span><span class="f">addKeybind</span><span class="p">(</span><span class="s">"4"</span><span class="p">,</span> <span class="s">"Toggle"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span>
+
+<span class="c">-- Control</span>
+<span class="v">right</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"autoDeal"</span><span class="p">,</span> <span class="s">"Auto Deal"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">autoDealActive</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">)</span>
+
+<span class="v">right</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"autoMini"</span><span class="p">,</span> <span class="s">"Auto Minigame"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="v">MG</span><span class="p">.</span><span class="v">active</span> <span class="p">=</span> <span class="v">v</span>
+<span class="k">end</span><span class="p">)</span>
+
+<span class="v">right</span><span class="p">:</span><span class="f">addSeparator</span><span class="p">()</span>
+
+<span class="v">right</span><span class="p">:</span><span class="f">addToggle</span><span class="p">(</span><span class="s">"stopAll"</span><span class="p">,</span> <span class="s">"Stop All"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+    <span class="k">if</span> <span class="v">v</span> <span class="k">then</span>
+        <span class="v">autoBuyActive</span>   <span class="p">=</span> <span class="k">false</span>
+        <span class="v">lemonFarmActive</span> <span class="p">=</span> <span class="k">false</span>
+        <span class="v">autoStandActive</span> <span class="p">=</span> <span class="k">false</span>
+        <span class="v">cashFarmActive</span>  <span class="p">=</span> <span class="k">false</span>
+    <span class="k">end</span>
+<span class="k">end</span><span class="p">):</span><span class="f">addKeybind</span><span class="p">(</span><span class="s">"5"</span><span class="p">,</span> <span class="s">"Toggle"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="k">end</span><span class="p">)</span>
+
+<span class="c">-- ── Onglet Auto ───────────────────────────</span>
+<span class="k">local</span> <span class="v">tab2</span>   <span class="p">=</span> <span class="v">win</span><span class="p">:</span><span class="f">addTab</span><span class="p">(</span><span class="s">"Auto"</span><span class="p">)</span>
+<span class="k">local</span> <span class="v">stands</span> <span class="p">=</span> <span class="v">tab2</span><span class="p">:</span><span class="f">addSection</span><span class="p">(</span><span class="s">"Stands"</span><span class="p">,</span> <span class="s">"Left"</span><span class="p">)</span>
+<span class="k">local</span> <span class="v">minis</span>  <span class="p">=</span> <span class="v">tab2</span><span class="p">:</span><span class="f">addSection</span><span class="p">(</span><span class="s">"Minigames"</span><span class="p">,</span> <span class="s">"Right"</span><span class="p">)</span>
+
+<span class="k">local</span> <span class="v">standEnabled</span> <span class="p">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="v">_</span><span class="p">,</span> <span class="v">nm</span> <span class="k">in</span> <span class="f">ipairs</span><span class="p">({</span>
+    <span class="s">"Lemon Stand"</span><span class="p">,</span><span class="s">"LemonDash"</span><span class="p">,</span><span class="s">"Lemon Depot"</span><span class="p">,</span>
+    <span class="s">"Lemon Labs"</span><span class="p">,</span><span class="s">"Lemon Trading"</span><span class="p">,</span><span class="s">"Lemon Robotics"</span><span class="p">,</span><span class="s">"Lemon Republic"</span>
+<span class="p">})</span> <span class="k">do</span>
+    <span class="v">standEnabled</span><span class="p">[</span><span class="v">nm</span><span class="p">]</span> <span class="p">=</span> <span class="k">true</span>
+    <span class="v">stands</span><span class="p">:</span><span class="f">addCheckbox</span><span class="p">(</span><span class="s">"stand_"</span><span class="p">..</span><span class="v">nm</span><span class="p">,</span> <span class="v">nm</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span>
+        <span class="v">standEnabled</span><span class="p">[</span><span class="v">nm</span><span class="p">]</span> <span class="p">=</span> <span class="v">v</span>
+    <span class="k">end</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="v">minis</span><span class="p">:</span><span class="f">addCheckbox</span><span class="p">(</span><span class="s">"mini_race"</span><span class="p">,</span> <span class="s">"Race"</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span> <span class="k">end</span><span class="p">)</span>
+<span class="v">minis</span><span class="p">:</span><span class="f">addCheckbox</span><span class="p">(</span><span class="s">"mini_trade"</span><span class="p">,</span> <span class="s">"Trade (soon)"</span><span class="p">,</span> <span class="k">false</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="v">v</span><span class="p">)</span> <span class="k">end</span><span class="p">)</span>
+
+<span class="c">-- Ouvrir</span>
+<span class="v">win</span><span class="p">.</span><span class="v">visible</span> <span class="p">=</span> <span class="k">true</span>
+
+<span class="c">-- Cleanup</span>
+<span class="v">_G</span><span class="p">.</span><span class="v">MatchaCleanup</span> <span class="p">=</span> <span class="k">function</span><span class="p">()</span>
+    <span class="v">win</span><span class="p">:</span><span class="f">remove</span><span class="p">()</span>
+<span class="k">end</span></pre>
+  </div>
+</div>
+
+</main>
+
+<script>
+  // ── Copy buttons ──
+  function copy(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓ Copié';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copier';
+        btn.classList.remove('copied');
+      }, 1800);
+    });
+  }
+
+  // ── Active nav link on scroll ──
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('nav a');
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const link = document.querySelector('nav a[href="#' + e.target.id + '"]');
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
