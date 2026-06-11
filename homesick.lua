@@ -1,3 +1,4 @@
+--f
 local env = nil
 pcall(function() env = getfenv and getfenv() or _G end)
 if type(env) ~= "table" then env = {} end
@@ -29,21 +30,12 @@ local function _fromG(...)
 end
 
 -- ── Mouse & Keyboard ─────────────────────────────────────────────────
-
--- ismouse1pressed: UNC standard, some exploits name it differently
-local _ismouse1pressed = _fromG(
-    "ismouse1pressed",   -- UNC / Velocity / Volt / Delta / Fluxus
-    "isMouseButton1Down" -- old Synapse alias
-)
-
--- Build via UIS if exploit doesn't expose ismouse1pressed directly
+local _ismouse1pressed = _fromG("ismouse1pressed", "isMouseButton1Down")
 if not _ismouse1pressed then
     local ok, uis = pcall(function() return game:GetService("UserInputService") end)
     if ok and uis then
         _ismouse1pressed = function()
-            local s, r = pcall(function()
-                return uis:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-            end)
+            local s, r = pcall(function() return uis:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) end)
             return s and r or false
         end
     else
@@ -51,17 +43,12 @@ if not _ismouse1pressed then
     end
 end
 
-local _ismouse2pressed = _fromG(
-    "ismouse2pressed",
-    "isMouseButton2Down"
-)
+local _ismouse2pressed = _fromG("ismouse2pressed", "isMouseButton2Down")
 if not _ismouse2pressed then
     local ok, uis = pcall(function() return game:GetService("UserInputService") end)
     if ok and uis then
         _ismouse2pressed = function()
-            local s, r = pcall(function()
-                return uis:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
-            end)
+            local s, r = pcall(function() return uis:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) end)
             return s and r or false
         end
     else
@@ -69,13 +56,10 @@ if not _ismouse2pressed then
     end
 end
 
--- iskeypressed: UNC standard
--- Xeno / Solara use same UNC names but may gate via UIS fallback
 local _iskeypressed = _fromG("iskeypressed", "isKeyDown")
 if not _iskeypressed then
     local ok, uis = pcall(function() return game:GetService("UserInputService") end)
     if ok and uis then
-        -- Build a VK-to-Enum table for UIS fallback
         local _vkToEnum = {}
         pcall(function()
             for _, v in ipairs(Enum.KeyCode:GetEnumItems()) do
@@ -93,18 +77,14 @@ if not _iskeypressed then
     end
 end
 
--- keypress / keyrelease: used for clipboard paste simulation
--- Not universally available; silently no-op if missing
 local _keypress   = _fromG("keypress",   "keyDown",   "sendKey")
 local _keyrelease = _fromG("keyrelease", "keyUp",     "releaseKey")
 if not _keypress   then _keypress   = function() end end
 if not _keyrelease then _keyrelease = function() end end
 
 -- ── Window focus ─────────────────────────────────────────────────────
-
 local _isrbxactive = _fromG("isrbxactive", "isRobloxFocused", "isGameFocused")
 if not _isrbxactive then
-    -- Electron / some newer exploits expose this via UIS
     local ok, uis = pcall(function() return game:GetService("UserInputService") end)
     if ok and uis then
         _isrbxactive = function()
@@ -120,27 +100,19 @@ local _setrobloxinput = _fromG("setrobloxinput", "setRobloxInput", "blockInput")
 if not _setrobloxinput then _setrobloxinput = function() end end
 
 -- ── File system ───────────────────────────────────────────────────────
-
--- Xeno: uses readfile/writefile/makefolder (same as UNC)
--- Solara: same
--- Volt: same UNC
--- Delta: same UNC
--- Fluxus: same UNC
--- Hydrogen/Arceus X: same UNC
 local _writefile  = _fromG("writefile",  "writeFile")
 local _readfile   = _fromG("readfile",   "readFile")
 local _makefolder = _fromG("makefolder", "makeFolder", "createfolder", "createFolder")
 local _isfile     = _fromG("isfile",     "isFile")
 local _isfolder   = _fromG("isfolder",   "isFolder")
 
--- Silently stub missing FS functions so pcall wrappers downstream don't crash
 if not _writefile  then _writefile  = function() end end
 if not _readfile   then _readfile   = function() return nil end end
 if not _makefolder then _makefolder = function() end end
 if not _isfile     then _isfile     = function() return false end end
 if not _isfolder   then _isfolder   = function() return false end end
 
--- Inject into env/globals so the rest of the lib picks them up transparently
+-- Inject globally
 do
     local injections = {
         ismouse1pressed = _ismouse1pressed,
@@ -157,69 +129,46 @@ do
         isfolder        = _isfolder,
     }
     for k, v in pairs(injections) do
-        if type(env[k]) ~= "function" then
-            pcall(function() env[k] = v end)
-        end
-        if type(rawget(_G, k)) ~= "function" then
-            pcall(function() rawset(_G, k, v) end)
-        end
+        if type(env[k]) ~= "function" then pcall(function() env[k] = v end) end
+        if type(rawget(_G, k)) ~= "function" then pcall(function() rawset(_G, k, v) end) end
     end
 end
 
 -- ── Drawing compatibility ─────────────────────────────────────────────
--- Most modern exploits (Velocity, Solara, Volt, Xeno, Delta, Fluxus)
--- expose the global `Drawing` table with `.new()` and `.Fonts`.
--- If it's missing (rare sandboxed envs), stub it so the lib doesn't crash.
 if type(Drawing) ~= "table" then
-    -- Attempt to grab from env/_G under alternate names
-    local _Drawing = nil
-    pcall(function() _Drawing = env.Drawing end)
-    pcall(function() if not _Drawing then _Drawing = rawget(_G, "Drawing") end end)
-    if type(_Drawing) == "table" then
-        Drawing = _Drawing
-    else
-        -- Minimal stub: returns dummy objects with all expected properties
-        local _stub_meta = {__index = function(t, k) return function() end end, __newindex = function() end}
-        local function _stubObj()
-            return setmetatable({
-                Visible = false, Color = Color3.new(1,1,1), Transparency = 1,
-                Position = Vector2.new(), Size = Vector2.new(), ZIndex = 1,
-                Text = "", Font = 0, Size = 13, Center = false, Outline = false,
-                From = Vector2.new(), To = Vector2.new(), Thickness = 1,
-                Filled = true, Corner = 0, Radius = 10, NumSides = 32,
-                PointA = Vector2.new(), PointB = Vector2.new(), PointC = Vector2.new(),
-            }, _stub_meta)
-        end
-        Drawing = {
-            new = function(kind) return _stubObj() end,
-            Fonts = { System = 0, SystemBold = 1, UI = 2, Minecraft = 3, Monospace = 4, Pixel = 5, Fortnite = 6 },
-        }
-        pcall(function() env.Drawing = Drawing end)
-        pcall(function() rawset(_G, "Drawing", Drawing) end)
+    local _stub_meta = {__index = function(t, k) return function() end end, __newindex = function() end}
+    local function _stubObj()
+        return setmetatable({
+            Visible = false, Color = Color3.new(1,1,1), Transparency = 1,
+            Position = Vector2.new(), Size = Vector2.new(), ZIndex = 1,
+            Text = "", Font = 0, Size = 13, Center = false, Outline = false,
+            From = Vector2.new(), To = Vector2.new(), Thickness = 1,
+            Filled = true, Corner = 0, Radius = 10, NumSides = 32,
+            PointA = Vector2.new(), PointB = Vector2.new(), PointC = Vector2.new(),
+        }, _stub_meta)
     end
+    Drawing = {
+        new = function(kind) return _stubObj() end,
+        Fonts = { System = 0, SystemBold = 1, UI = 2, Minecraft = 3, Monospace = 4, Pixel = 5, Fortnite = 6 },
+    }
+    pcall(function() env.Drawing = Drawing end)
+    pcall(function() rawset(_G, "Drawing", Drawing) end)
 end
 
--- Ensure Drawing.Fonts exists (Hydrogen/Arceus X sometimes omit it)
 if type(Drawing.Fonts) ~= "table" then
     Drawing.Fonts = { System = 0, SystemBold = 1, UI = 2, Minecraft = 3, Monospace = 4, Pixel = 5, Fortnite = 6 }
 end
 
 -- ── Exploit name detection ────────────────────────────────────────────
 local _exploitName = nil
-
 pcall(function()
-    -- UNC standard (Velocity, Solara, Volt, Xeno, Delta, Fluxus, Krnl, ...)
     local fn = _fromG("identifyexecutor", "getexecutorname", "whatexecutor")
     if type(fn) == "function" then
         local ok, name = pcall(fn)
-        if ok and type(name) == "string" and #name > 0 then
-            _exploitName = name
-        end
+        if ok and type(name) == "string" and #name > 0 then _exploitName = name end
     end
 end)
-
 if not _exploitName then pcall(function()
-    -- Flags globals souvent exposés par chaque exploit
     local flags = {
         { "ELECTRON_LOADED",  "Electron"  },
         { "DELTA_LOADED",     "Delta"     },
@@ -233,34 +182,20 @@ if not _exploitName then pcall(function()
         { "ARCEUS_LOADED",    "Arceus X"  },
     }
     for _, pair in ipairs(flags) do
-        local v = nil
-        pcall(function() v = rawget(_G, pair[1]) end)
-        if v then _exploitName = pair[2]; break end
-        pcall(function() v = env[pair[1]] end)
-        if v then _exploitName = pair[2]; break end
+        if rawget(_G, pair[1]) or env[pair[1]] then _exploitName = pair[2]; break end
     end
 end) end
-
 if not _exploitName then pcall(function()
-    -- Synapse X legacy
     if type(rawget(_G, "syn")) == "table" and type(rawget(_G, "syn").protect_gui) == "function" then
         _exploitName = "Synapse X"
     end
 end) end
-
-if not _exploitName then pcall(function()
-    -- exploit_name / exploitname variable directe (certains exploits custom)
-    local v = _fromG("exploit_name", "exploitname", "ExecutorName")
-    if type(v) == "string" and #v > 0 then _exploitName = v end
-end) end
-
--- Trim + capitalize first letter
 if type(_exploitName) == "string" then
     _exploitName = _exploitName:match("^%s*(.-)%s*$")
     if #_exploitName == 0 then _exploitName = nil end
 end
 
--- ─────────────────────────────────────────────────────────────────────
+
 
 local shared = type(shared) == "table" and shared or {}
 local function safeWriteGlobal(key, value)
@@ -451,9 +386,9 @@ if uis then
 end
 
 local Fonts = (type(Drawing) == "table" and Drawing.Fonts) or {}
-local FontSystem = Fonts.System or Fonts.UI or 0
-local FontBold = Fonts.SystemBold or FontSystem
-local FontUI = Fonts.UI or FontSystem
+local FontSystem = Fonts.Monospace or 4
+local FontBold = Fonts.Monospace or 4
+local FontUI = Fonts.Monospace or 4
 
 local FontWidths = {}
 FontWidths[Fonts.System or 0] = 0.48
@@ -869,12 +804,18 @@ local function clampWindow()
 end
 
 local function getMouse()
-    if not Mouse then
-        LocalPlayer = Players.LocalPlayer
-        Mouse = select(1, pcall(function() return LocalPlayer:GetMouse() end)) and LocalPlayer:GetMouse() or nil
-    end
-    if Mouse then
-        if not ProjectState.mouseConnected then
+    local uis = game:GetService("UserInputService")
+    local success, pos = pcall(function() return uis:GetMouseLocation() end)
+    if success and pos then
+        ProjectState.mouseX = pos.X
+        ProjectState.mouseY = pos.Y
+        ProjectState.hasMouse = true
+        
+        if not Mouse then
+            LocalPlayer = Players.LocalPlayer
+            Mouse = select(1, pcall(function() return LocalPlayer:GetMouse() end)) and LocalPlayer:GetMouse() or nil
+        end
+        if Mouse and not ProjectState.mouseConnected then
             ProjectState.mouseConnected = true
             pcall(function()
                 Mouse.WheelForward:Connect(function()
@@ -885,6 +826,14 @@ local function getMouse()
                 end)
             end)
         end
+        return pos.X, pos.Y
+    end
+    
+    if not Mouse then
+        LocalPlayer = Players.LocalPlayer
+        Mouse = select(1, pcall(function() return LocalPlayer:GetMouse() end)) and LocalPlayer:GetMouse() or nil
+    end
+    if Mouse then
         ProjectState.mouseX = Mouse.X
         ProjectState.mouseY = Mouse.Y
         ProjectState.hasMouse = true
@@ -1026,7 +975,7 @@ local function rect(x, y, w, h, color, z, radius, transparency)
     d.Size = v2(w, h)
     d.Color = color
     d.Filled = true
-    d.Corner = radius or 0
+    d.Corner = 0
     d.ZIndex = z or 1
     d.Transparency = (transparency or drawVisible) * getThemeAlpha(color)
 end
@@ -1043,7 +992,7 @@ local function strokeRect(x, y, w, h, color, z, radius, transparency)
     d.Size = v2(w, h)
     d.Color = color
     d.Filled = false
-    d.Corner = radius or 0
+    d.Corner = 0
     d.ZIndex = z or 1
     d.Transparency = (transparency or drawVisible) * getThemeAlpha(color)
 end
@@ -6578,13 +6527,11 @@ end
 homesick.CreateElement = homesick.CreateBox
 
 homesick.createWindow = function(title, width, height)
-    -- Auto-append exploit name to title if detected
-    local displayTitle = tostring(title or "homesick")
-    if type(_exploitName) == "string" and #_exploitName > 0 then
-        displayTitle = displayTitle .. "  [" .. _exploitName .. "]"
+    local displayTitle = title
+    if _exploitName then
+        displayTitle = title .. " [" .. _exploitName .. "]"
     end
     ui:SetTitle(displayTitle)
-
     ui:SetSize(width, height)
     ui:Center()
     
