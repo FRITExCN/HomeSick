@@ -1,3 +1,4 @@
+--f
 local env = nil
 pcall(function() env = getfenv and getfenv() or _G end)
 if type(env) ~= "table" then env = {} end
@@ -381,6 +382,121 @@ FontWidths[Fonts.Fortnite or 0] = 0.55
 
 local drawVisible = 1
 local menuKey = "p"
+
+-- ── Détection support Corner (Velocity = nil, Synapse/Krnl = ok) ──────
+local _cornerSupported = false
+pcall(function()
+    local _test = Drawing.new("Square")
+    _test.Size = Vector2.new(10, 10)
+    _test.Position = Vector2.new(-9999, -9999)
+    _test.Filled = true
+    _test.Visible = false
+    _test.Corner = 8
+    _cornerSupported = (_test.Corner ~= nil and _test.Corner ~= 0)
+    pcall(function() _test:Remove() end)
+end)
+
+-- ── ScreenGui pool pour les coins arrondis (fallback Velocity) ──────────
+local _sgRoot = nil
+local _sgPool = {}
+local _sgIndex = 0
+local _sgHighWater = 0
+
+local function _getSgRoot()
+    if _sgRoot and _sgRoot.Parent then return _sgRoot end
+    _sgRoot = nil
+    pcall(function()
+        local lp = game:GetService("Players").LocalPlayer
+        local pg = lp and lp:FindFirstChildOfClass("PlayerGui") or game:GetService("CoreGui")
+        local sg = Instance.new("ScreenGui")
+        sg.Name = "homesickCorners"
+        sg.ResetOnSpawn = false
+        sg.DisplayOrder = 999
+        sg.IgnoreGuiInset = true
+        sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        sg.Parent = pg
+        _sgRoot = sg
+    end)
+    return _sgRoot
+end
+
+local function _getCornerSlot(index)
+    local slot = _sgPool[index]
+    if slot then return slot end
+    slot = {}
+    pcall(function()
+        local root = _getSgRoot()
+        if not root then return end
+        -- Frame fill
+        local f = Instance.new("Frame")
+        f.BorderSizePixel = 0
+        f.BackgroundTransparency = 1
+        f.Visible = false
+        f.Parent = root
+        local uc = Instance.new("UICorner", f)
+        uc.CornerRadius = UDim.new(0, 6)
+        -- Frame stroke
+        local fs = Instance.new("Frame")
+        fs.BorderSizePixel = 0
+        fs.BackgroundTransparency = 1
+        fs.Visible = false
+        fs.Parent = root
+        local ucs = Instance.new("UICorner", fs)
+        ucs.CornerRadius = UDim.new(0, 6)
+        local us = Instance.new("UIStroke", fs)
+        us.Thickness = 1
+        us.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        slot.fill   = f
+        slot.stroke = fs
+        slot.corner = uc
+        slot.scorner = ucs
+        slot.ustroke = us
+    end)
+    _sgPool[index] = slot
+    return slot
+end
+
+local function _sgHide(slot)
+    if not slot then return end
+    pcall(function() slot.fill.Visible   = false end)
+    pcall(function() slot.stroke.Visible = false end)
+end
+
+local function _sgApply(slot, x, y, w, h, color, rad, trans, filled)
+    if not slot then return end
+    local vw, vh = 1920, 1080
+    pcall(function()
+        local vp = game:GetService("Workspace").CurrentCamera.ViewportSize
+        vw, vh = vp.X, vp.Y
+    end)
+    local cr = UDim.new(0, rad or 6)
+    local t  = 1 - (trans or 1)
+    if t < 0 then t = 0 end
+    if t > 1 then t = 1 end
+    pcall(function()
+        if filled then
+            local f = slot.fill
+            f.Position = UDim2.new(x/vw, 0, y/vh, 0)
+            f.Size     = UDim2.new(w/vw, 0, h/vh, 0)
+            f.BackgroundColor3       = color
+            f.BackgroundTransparency = t
+            slot.corner.CornerRadius = cr
+            f.Visible = true
+            slot.stroke.Visible = false
+        else
+            local fs = slot.stroke
+            fs.Position = UDim2.new(x/vw, 0, y/vh, 0)
+            fs.Size     = UDim2.new(w/vw, 0, h/vh, 0)
+            fs.BackgroundTransparency = 1
+            slot.scorner.CornerRadius = cr
+            slot.ustroke.Color     = color
+            slot.ustroke.Thickness = 1
+            slot.ustroke.Transparency = t
+            fs.Visible = true
+            slot.fill.Visible = false
+        end
+    end)
+end
 
 local tabH = 30
 local minimizedH = 42
@@ -836,6 +952,7 @@ local function resetPool()
     PoolIndex.ci = 0
     PoolIndex.tr = 0
     PoolIndex.im = 0
+    _sgIndex = 0  -- reset du pool ScreenGui corners
 end
 
 local function getDrawing(kind)
@@ -905,6 +1022,17 @@ local function hideUnused()
             PoolHighWater[kind] = current
         end
     end
+    -- Cacher les slots ScreenGui inutilisés ce frame
+    if not _cornerSupported then
+        local cur = _sgIndex
+        local hi  = _sgHighWater
+        if cur < hi then
+            for i = cur + 1, hi do
+                _sgHide(_sgPool[i])
+            end
+        end
+        if cur > hi then _sgHighWater = cur end
+    end
 end
 
 local function hideAll()
@@ -947,42 +1075,60 @@ local function rect(x, y, w, h, color, z, radius, transparency)
     if w <= 0 or h <= 0 then
         return
     end
-    local d = getDrawing("sq")
-    if not d then
+    local rad = radius or 6
+    local trans = (transparency or drawVisible) * getThemeAlpha(color)
+    -- Si le radius est > 0 et que Corner n'est pas supporté → ScreenGui Frame
+    if rad > 0 and not _cornerSupported then
+        _sgIndex = _sgIndex + 1
+        if _sgIndex > _sgHighWater then _sgHighWater = _sgIndex end
+        local slot = _getCornerSlot(_sgIndex)
+        _sgApply(slot, x, y, w, h, color, rad, trans, true)
         return
     end
+    local d = getDrawing("sq")
+    if not d then return end
     d.Position = v2(x, y)
     d.Size = v2(w, h)
     d.Color = color
     d.Filled = true
-        local rad = radius or 6
-    pcall(function() d.Corner = rad end)
-    pcall(function() d.Round = rad end)
-    pcall(function() d.Radius = rad end)
-    pcall(function() d.CornerRadius = rad end)
+    if rad > 0 then
+        pcall(function() d.Corner = rad end)
+        pcall(function() d.Round = rad end)
+        pcall(function() d.Radius = rad end)
+        pcall(function() d.CornerRadius = rad end)
+    end
     d.ZIndex = z or 1
-    d.Transparency = (transparency or drawVisible) * getThemeAlpha(color)
+    d.Transparency = trans
 end
 
 local function strokeRect(x, y, w, h, color, z, radius, transparency)
     if w <= 0 or h <= 0 then
         return
     end
-    local d = getDrawing("sq")
-    if not d then
+    local rad = radius or 6
+    local trans = (transparency or drawVisible) * getThemeAlpha(color)
+    -- Si le radius est > 0 et que Corner n'est pas supporté → ScreenGui UIStroke
+    if rad > 0 and not _cornerSupported then
+        _sgIndex = _sgIndex + 1
+        if _sgIndex > _sgHighWater then _sgHighWater = _sgIndex end
+        local slot = _getCornerSlot(_sgIndex)
+        _sgApply(slot, x, y, w, h, color, rad, trans, false)
         return
     end
+    local d = getDrawing("sq")
+    if not d then return end
     d.Position = v2(x, y)
     d.Size = v2(w, h)
     d.Color = color
     d.Filled = false
-        local rad = radius or 6
-    pcall(function() d.Corner = rad end)
-    pcall(function() d.Round = rad end)
-    pcall(function() d.Radius = rad end)
-    pcall(function() d.CornerRadius = rad end)
+    if rad > 0 then
+        pcall(function() d.Corner = rad end)
+        pcall(function() d.Round = rad end)
+        pcall(function() d.Radius = rad end)
+        pcall(function() d.CornerRadius = rad end)
+    end
     d.ZIndex = z or 1
-    d.Transparency = (transparency or drawVisible) * getThemeAlpha(color)
+    d.Transparency = trans
 end
 
 local function textWidth(value, size, font)
@@ -1990,6 +2136,11 @@ local function finalDestroy()
     end
 
     removeAllDrawings()
+    -- Détruire la ScreenGui des coins arrondis
+    pcall(function()
+        if _sgRoot then _sgRoot:Destroy(); _sgRoot = nil end
+        _sgPool = {}; _sgIndex = 0; _sgHighWater = 0
+    end)
     pcall(function()
         game:GetService("ContextActionService"):UnbindAction("homesickFreezeMovement")
     end)
