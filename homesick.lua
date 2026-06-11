@@ -1,4 +1,3 @@
---f
 local env = nil
 pcall(function() env = getfenv and getfenv() or _G end)
 if type(env) ~= "table" then env = {} end
@@ -2140,7 +2139,6 @@ local function finalDestroy()
     end)
     pcall(function()
         game:GetService("ContextActionService"):UnbindAction("homesickFreezeMovement")
-        game:GetService("ContextActionService"):UnbindAction("homesickScrollBlock")
     end)
     if uis then
         pcall(function()
@@ -3867,7 +3865,7 @@ local function renderToggleExtras(item, rowX, rowY, rowW, click, rightClick, tra
 
         local modeLabel = item.keybind.mode == "Toggle" and "[Toggle]" or item.keybind.mode == "Always" and "[Always]" or "[Hold]"
         local modeLabelColor = item.keybind.mode == "Hold" and Theme.sub or Theme.accent
-        txt(modeLabel, keyX + neededW / 2, rowY + 18, modeLabelColor, 9, FontUI, 52, true, false, neededW, trans)
+        txt(modeLabel, keyX + neededW / 2, rowY + 22, modeLabelColor, 9, FontUI, 52, true, false, neededW, trans)
 
         if item.keybind.listening then
             for j = 1, 8 do
@@ -3981,7 +3979,7 @@ local function getItemHeight(item, rowW)
         item.cachedLineCount = #labelLines
         return math.max(28, #labelLines * 16 + 8)
     elseif item.type == "checkbox" and item.keybind then
-        return 32
+        return 36
     end
     return 28
 end
@@ -4354,11 +4352,11 @@ local function renderSectionCard(section, colX, sy, colW, secH, clipTop, clipBot
                     end
                     
                 elseif item.type == "textbox" then
-                    txt(item.label, rowX + 4, rowY + 2, Theme.text, 13, FontSystem, z + 12, false, false, rowW - 20, trans)
+                    txt(item.label, rowX + 4, rowY + 3, Theme.text, 12, FontSystem, z + 12, false, false, rowW - 20, trans)
                     
                     local bx, bw = rowX + 4, rowW - 8
-                    local dyBox = rowY + 18
-                    local boxH = 22
+                    local dyBox = rowY + 20
+                    local boxH = 20
                     local focused = ProjectState.focus == item
                     
                     rect(bx, dyBox, bw, boxH, focused and Theme.surface or over(bx, dyBox, bw, boxH) and Theme.surface3 or Theme.surface2, z + 12, 4, trans)
@@ -4366,16 +4364,16 @@ local function renderSectionCard(section, colX, sy, colW, secH, clipTop, clipBot
                     
                     local isEmpty = item.value == ""
                     local textTrans = (focused and isEmpty) and trans * 0.2 or trans
-                    txt(isEmpty and "..." or item.value, bx + 8, textTop(dyBox, boxH, 13), isEmpty and Theme.sub or Theme.text, 13, FontUI, z + 14, false, false, bw - 16, textTrans)
+                    txt(isEmpty and "..." or item.value, bx + 8, textTop(dyBox, boxH, 12), isEmpty and Theme.sub or Theme.text, 12, FontUI, z + 14, false, false, bw - 16, textTrans)
                     if focused then
                         if item.selectedAll and not isEmpty then
-                            rect(bx + 8, dyBox + 3, math.min(bw - 16, textWidth(item.value, 13, FontUI)), boxH - 6, Theme.accent, z + 13, 2, trans * 0.4)
+                            rect(bx + 8, dyBox + 3, math.min(bw - 16, textWidth(item.value, 12, FontUI)), boxH - 6, Theme.accent, z + 13, 2, trans * 0.4)
                         end
                         local cursorX = bx + 8
                         if not isEmpty then
-                            cursorX = cursorX + textWidth(item.value, 13, FontUI)
+                            cursorX = cursorX + textWidth(item.value, 12, FontUI)
                         end
-                        txt("|", cursorX, textTop(dyBox, boxH, 13), Theme.text, 13, FontUI, z + 15, false, false, nil, trans * clamp(0.5 + 0.5 * math.sin(clock() * 8), 0, 1))
+                        txt("|", cursorX, textTop(dyBox, boxH, 12), Theme.text, 12, FontUI, z + 15, false, false, nil, trans * clamp(0.5 + 0.5 * math.sin(clock() * 8), 0, 1))
                     end
                     
                     if click and over(bx, dyBox, bw, boxH) and not popupBlocking and not disabled and trans > 0.5 then
@@ -4939,7 +4937,8 @@ local function initSettings()
     ProjectState.settingsTab = settingsTab
  
     local configSection = createSection(settingsTab, "Configs", "Left")
-    local configDropdown = configSection:Dropdown("Config List", {}, getConfigsList())
+    local configDropdown = configSection:Dropdown("Config List", getConfigsList(), getConfigsList())
+    configDropdown:Set("")
     
     configDropdown.item.deletable = true
     configDropdown.item.onDelete = function(name)
@@ -4952,6 +4951,7 @@ local function initSettings()
     end
     
     local configNameBox = configSection:Textbox("Config Name", "")
+    configNameBox:Set("")
 
     configSection:Button("Load", function()
         local name = configNameBox.item.value
@@ -4962,9 +4962,6 @@ local function initSettings()
             local ok, raw = pcall(readfile, "homesick/" .. name .. ".json")
             if ok and ok == ok and raw then
                 loadConfig(raw)
-                ui:Notify("config", "loaded: " .. name, 3)
-            else
-                ui:Notify("config", "failed to load: " .. name, 3)
             end
         end
     end)
@@ -4978,13 +4975,13 @@ local function initSettings()
             if json and json ~= "" then
                 pcall(writefile, "homesick/" .. name .. ".json", json)
                 configDropdown:UpdateChoices(getConfigsList())
-                ui:Notify("config", "saved: " .. name, 3)
             end
         end
     end)
 
     local themeSection = createSection(settingsTab, "Themes", "Right")
-    local themeDropdown = themeSection:Dropdown("Theme List", {}, getThemesList())
+    local themeDropdown = themeSection:Dropdown("Theme List", getThemesList(), getThemesList())
+    themeDropdown:Set("")
     
     themeDropdown.item.deletable = true
     themeDropdown.item.onDelete = function(name)
@@ -5008,9 +5005,6 @@ local function initSettings()
             local ok, raw = pcall(readfile, "homesick/themes/" .. name .. ".json")
             if ok and ok == ok and raw then
                 loadTheme(raw)
-                ui:Notify("theme", "loaded: " .. name, 3)
-            else
-                ui:Notify("theme", "failed to load: " .. name, 3)
             end
         end
     end)
@@ -5028,7 +5022,6 @@ local function initSettings()
             if json and json ~= "" then
                 pcall(writefile, "homesick/themes/" .. name .. ".json", json)
                 themeDropdown:UpdateChoices(getThemesList())
-                ui:Notify("theme", "saved: " .. name, 3)
             end
         end
     end)
@@ -5327,7 +5320,7 @@ local function renderSearchFeature(item, rowX, rowY, rowW, click, held, rightCli
         rect(bx, dyBox, bw, boxH, focused and Theme.surface or over(bx, dyBox, bw, boxH) and Theme.surface3 or Theme.surface2, z + 12, 4, trans)
         strokeRect(bx, dyBox, bw, boxH, focused and Theme.accent or Theme.border, z + 13, 4, trans)
         
-        txt((item.value == "") and "..." or item.value, bx + 8, textTop(dyBox, boxH, 13), (item.value == "") and Theme.sub or Theme.text, 13, FontUI, z + 14, false, false, bw - 16, trans)
+        txt((item.value == "") and item.label or item.value, bx + 8, textTop(dyBox, boxH, 13), (item.value == "") and Theme.sub or Theme.text, 13, FontUI, z + 14, false, false, bw - 16, trans)
         if focused then
             if item.selectedAll and not (item.value == "") then
                 rect(bx + 8, dyBox + 3, math.min(bw - 16, textWidth(item.value, 13, FontUI)), boxH - 6, Theme.accent, z + 13, 2, trans * 0.4)
@@ -5514,8 +5507,8 @@ local function renderWindow(click, held, rightClick)
     local isVertTitle = titlePos == "left" or titlePos == "right"
     
     local titleBarX, titleBarY, titleBarW, titleBarH
-    local px, py = x + 8, y + 8
-    local pw, ph = w - 16, h - 16 - 24
+    local px, py = x + 10, y + 10
+    local pw, ph = w - 20, h - 20 - 24
     
     if titlePos == "left" then
         titleBarX, titleBarY, titleBarW, titleBarH = x + 2, y + 2, 36 - 2, h - 28
@@ -5529,8 +5522,8 @@ local function renderWindow(click, held, rightClick)
         ph = ph - 36
     else
         titleBarX, titleBarY, titleBarW, titleBarH = x + 2, y + 2, w - 4, 36 - 2
-        py = py + 32
-        ph = ph - 32
+        py = py + 36
+        ph = ph - 36
     end
 
     for i = 1, #shadowAlpha do
@@ -6252,28 +6245,6 @@ local function step()
 
     local prevFocus = ProjectState.focus
     -- Zoom lock désactivé (causait dézoom involontaire)
-    -- Scroll lock: bloquer le zoom/scroll du jeu quand la souris est sur la GUI
-    local mouseOverGui = ProjectState.open and ProjectState.hasMouse and over(ProjectState.x, ProjectState.y, ProjectState.w, ProjectState.h)
-    local wantsScrollBlock = mouseOverGui or ProjectState.spotlightActive
-    if wantsScrollBlock ~= ProjectState.lastScrollBlocked then
-        ProjectState.lastScrollBlocked = wantsScrollBlock
-        pcall(function()
-            if game then
-                local cas = game:GetService("ContextActionService")
-                if wantsScrollBlock then
-                    cas:BindActionAtPriority(
-                        "homesickScrollBlock",
-                        function() return Enum.ContextActionResult.Sink end,
-                        false,
-                        3000,
-                        Enum.UserInputType.MouseWheel
-                    )
-                else
-                    cas:UnbindAction("homesickScrollBlock")
-                end
-            end
-        end)
-    end
     resetPool()
     ProjectState.tooltipText = nil
     if (not ProjectState.open or not ProjectState.colorpicker) and ProjectState.cpPaletteSquares then
@@ -6723,6 +6694,9 @@ homesick.createWindow = function(title, width, height)
                     wSelf.rawItem:Set(val)
                     return wSelf
                 end
+                -- PascalCase aliases for compatibility
+                widgetWrap.SetValue = widgetWrap.setValue
+                widgetWrap.GetValue = widgetWrap.getValue
                 
                 return widgetWrap
             end
@@ -6758,6 +6732,9 @@ homesick.createWindow = function(title, width, height)
                     wSelf.rawItem:Set(val)
                     return wSelf
                 end
+                -- PascalCase aliases for compatibility
+                widgetWrap.SetValue = widgetWrap.setValue
+                widgetWrap.GetValue = widgetWrap.getValue
                 
                 return widgetWrap
             end
@@ -6783,6 +6760,9 @@ homesick.createWindow = function(title, width, height)
                     wSelf.rawItem:Set(val)
                     return wSelf
                 end
+                -- PascalCase aliases for compatibility
+                widgetWrap.SetValue = widgetWrap.setValue
+                widgetWrap.GetValue = widgetWrap.getValue
                 
                 return widgetWrap
             end
@@ -6822,6 +6802,9 @@ homesick.createWindow = function(title, width, height)
                     wSelf.rawItem:Set(val)
                     return wSelf
                 end
+                -- PascalCase aliases for compatibility
+                widgetWrap.SetValue = widgetWrap.setValue
+                widgetWrap.GetValue = widgetWrap.getValue
                 
                 return widgetWrap
             end
@@ -6877,6 +6860,9 @@ homesick.createWindow = function(title, width, height)
                     wSelf.rawItem:Set(val)
                     return wSelf
                 end
+                -- PascalCase aliases for compatibility
+                widgetWrap.SetValue = widgetWrap.setValue
+                widgetWrap.GetValue = widgetWrap.getValue
                 
                 return widgetWrap
             end
@@ -6932,6 +6918,9 @@ homesick.createWindow = function(title, width, height)
                     wSelf.rawItem:Set(val)
                     return wSelf
                 end
+                -- PascalCase aliases for compatibility
+                widgetWrap.SetValue = widgetWrap.setValue
+                widgetWrap.GetValue = widgetWrap.getValue
                 
                 return widgetWrap
             end
@@ -6967,6 +6956,9 @@ homesick.createWindow = function(title, width, height)
                     wSelf.rawItem:Set(val)
                     return wSelf
                 end
+                -- PascalCase aliases for compatibility
+                widgetWrap.SetValue = widgetWrap.setValue
+                widgetWrap.GetValue = widgetWrap.getValue
                 
                 return widgetWrap
             end
