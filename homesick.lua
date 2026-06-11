@@ -1,3 +1,4 @@
+--f
 local env = nil
 pcall(function() env = getfenv and getfenv() or _G end)
 if type(env) ~= "table" then env = {} end
@@ -2139,6 +2140,7 @@ local function finalDestroy()
     end)
     pcall(function()
         game:GetService("ContextActionService"):UnbindAction("homesickFreezeMovement")
+        game:GetService("ContextActionService"):UnbindAction("homesickScrollBlock")
     end)
     if uis then
         pcall(function()
@@ -3865,7 +3867,7 @@ local function renderToggleExtras(item, rowX, rowY, rowW, click, rightClick, tra
 
         local modeLabel = item.keybind.mode == "Toggle" and "[Toggle]" or item.keybind.mode == "Always" and "[Always]" or "[Hold]"
         local modeLabelColor = item.keybind.mode == "Hold" and Theme.sub or Theme.accent
-        txt(modeLabel, keyX + neededW / 2, rowY + 22, modeLabelColor, 9, FontUI, 52, true, false, neededW, trans)
+        txt(modeLabel, keyX + neededW / 2, rowY + 18, modeLabelColor, 9, FontUI, 52, true, false, neededW, trans)
 
         if item.keybind.listening then
             for j = 1, 8 do
@@ -3979,7 +3981,7 @@ local function getItemHeight(item, rowW)
         item.cachedLineCount = #labelLines
         return math.max(28, #labelLines * 16 + 8)
     elseif item.type == "checkbox" and item.keybind then
-        return 36
+        return 32
     end
     return 28
 end
@@ -4364,7 +4366,7 @@ local function renderSectionCard(section, colX, sy, colW, secH, clipTop, clipBot
                     
                     local isEmpty = item.value == ""
                     local textTrans = (focused and isEmpty) and trans * 0.2 or trans
-                    txt(isEmpty and item.label or item.value, bx + 8, textTop(dyBox, boxH, 13), isEmpty and Theme.sub or Theme.text, 13, FontUI, z + 14, false, false, bw - 16, textTrans)
+                    txt(isEmpty and "..." or item.value, bx + 8, textTop(dyBox, boxH, 13), isEmpty and Theme.sub or Theme.text, 13, FontUI, z + 14, false, false, bw - 16, textTrans)
                     if focused then
                         if item.selectedAll and not isEmpty then
                             rect(bx + 8, dyBox + 3, math.min(bw - 16, textWidth(item.value, 13, FontUI)), boxH - 6, Theme.accent, z + 13, 2, trans * 0.4)
@@ -5325,7 +5327,7 @@ local function renderSearchFeature(item, rowX, rowY, rowW, click, held, rightCli
         rect(bx, dyBox, bw, boxH, focused and Theme.surface or over(bx, dyBox, bw, boxH) and Theme.surface3 or Theme.surface2, z + 12, 4, trans)
         strokeRect(bx, dyBox, bw, boxH, focused and Theme.accent or Theme.border, z + 13, 4, trans)
         
-        txt((item.value == "") and item.label or item.value, bx + 8, textTop(dyBox, boxH, 13), (item.value == "") and Theme.sub or Theme.text, 13, FontUI, z + 14, false, false, bw - 16, trans)
+        txt((item.value == "") and "..." or item.value, bx + 8, textTop(dyBox, boxH, 13), (item.value == "") and Theme.sub or Theme.text, 13, FontUI, z + 14, false, false, bw - 16, trans)
         if focused then
             if item.selectedAll and not (item.value == "") then
                 rect(bx + 8, dyBox + 3, math.min(bw - 16, textWidth(item.value, 13, FontUI)), boxH - 6, Theme.accent, z + 13, 2, trans * 0.4)
@@ -6250,6 +6252,28 @@ local function step()
 
     local prevFocus = ProjectState.focus
     -- Zoom lock désactivé (causait dézoom involontaire)
+    -- Scroll lock: bloquer le zoom/scroll du jeu quand la souris est sur la GUI
+    local mouseOverGui = ProjectState.open and ProjectState.hasMouse and over(ProjectState.x, ProjectState.y, ProjectState.w, ProjectState.h)
+    local wantsScrollBlock = mouseOverGui or ProjectState.spotlightActive
+    if wantsScrollBlock ~= ProjectState.lastScrollBlocked then
+        ProjectState.lastScrollBlocked = wantsScrollBlock
+        pcall(function()
+            if game then
+                local cas = game:GetService("ContextActionService")
+                if wantsScrollBlock then
+                    cas:BindActionAtPriority(
+                        "homesickScrollBlock",
+                        function() return Enum.ContextActionResult.Sink end,
+                        false,
+                        3000,
+                        Enum.UserInputType.MouseWheel
+                    )
+                else
+                    cas:UnbindAction("homesickScrollBlock")
+                end
+            end
+        end)
+    end
     resetPool()
     ProjectState.tooltipText = nil
     if (not ProjectState.open or not ProjectState.colorpicker) and ProjectState.cpPaletteSquares then
